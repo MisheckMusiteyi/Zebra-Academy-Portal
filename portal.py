@@ -721,6 +721,36 @@ def safe_sum(df, column_name):
     return pd.to_numeric(df[column_name], errors='coerce').sum()
 
 # ============================================================
+# AUTO-GRADING SYSTEM
+# ============================================================
+def calculate_grade(mark):
+    """Auto-calculate grade based on mark percentage."""
+    if mark >= 75:
+        return "A"
+    elif mark >= 60:
+        return "B"
+    elif mark >= 50:
+        return "C"
+    elif mark >= 45:
+        return "D"
+    elif mark >= 40:
+        return "E"
+    else:
+        return "F"
+
+def grade_color(grade):
+    """Return color for grade display."""
+    colors = {
+        "A": GREEN,
+        "B": "#8BC34A",
+        "C": "#FFC107",
+        "D": "#FF9800",
+        "E": "#FF5722",
+        "F": RED,
+    }
+    return colors.get(grade, MAROON_TEXT)
+
+# ============================================================
 # ADMIN DASHBOARD - MAIN
 # ============================================================
 def admin_dashboard():
@@ -740,6 +770,7 @@ def admin_dashboard():
             "Register Student",
             "Record Fee Payment",
             "Enter Performance",
+            "Student Grades",
             "Mark Attendance",
             "Record Expense",
             "Record Other Income",
@@ -768,6 +799,8 @@ def admin_dashboard():
         admin_record_fee()
     elif page == "Enter Performance":
         admin_enter_performance()
+    elif page == "Student Grades":
+        admin_student_grades()
     elif page == "Mark Attendance":
         admin_mark_attendance()
     elif page == "Record Expense":
@@ -780,7 +813,7 @@ def admin_dashboard():
         admin_all_students()
 
 # ============================================================
-# ADMIN OVERVIEW (REDESIGNED)
+# ADMIN OVERVIEW
 # ============================================================
 def admin_overview():
     st.markdown("## Admin Overview")
@@ -806,8 +839,6 @@ def admin_overview():
     df_payments_all = load_data("Fee Payments")
     df_expenses_all = load_data("Expenses")
     df_other_income_all = load_data("Other Income")
-    df_performance_all = load_data("Performance")
-    df_salaries_all = load_data("Salaries")
     
     # All-time totals
     total_students = len(df_students) if not df_students.empty else 0
@@ -1060,32 +1091,51 @@ def admin_overview():
         """, unsafe_allow_html=True)
     
     st.markdown('</div></div>', unsafe_allow_html=True)
+
+# ============================================================
+# STUDENT GRADES PAGE
+# ============================================================
+def admin_student_grades():
+    st.markdown("## Student Grades")
     
-    # ============================================================
-    # SECTION 4: PERFORMANCE DATA (TERM-FILTERABLE)
-    # ============================================================
-    df_perf_filtered = filter_by_term(df_performance_all.copy(), selected_term)
+    df_performance_all = load_data("Performance")
     
-    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Performance Records{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
+    # Term filter
+    available_terms = get_available_terms()
+    term_options = ["All Time"] + available_terms
     
-    if not df_perf_filtered.empty:
-        df_perf_filtered.columns = df_perf_filtered.columns.astype(str).str.strip()
+    col_filter, col_space = st.columns([1, 3])
+    with col_filter:
+        selected_term = st.selectbox(
+            "Filter by Term",
+            term_options,
+            key="grades_term_filter"
+        )
+    
+    df_perf = filter_by_term(df_performance_all.copy(), selected_term)
+    
+    badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
+    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Grade Records{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    if not df_perf.empty:
+        df_perf.columns = df_perf.columns.astype(str).str.strip()
         
+        # Filters
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            all_students = ["All"] + sorted(df_perf_filtered["Student Name"].dropna().unique().tolist()) if "Student Name" in df_perf_filtered.columns else ["All"]
-            filter_student = st.selectbox("Student", all_students, key="perf_student")
+            all_students = ["All"] + sorted(df_perf["Student Name"].dropna().unique().tolist()) if "Student Name" in df_perf.columns else ["All"]
+            filter_student = st.selectbox("Student", all_students, key="grades_student")
         with col2:
-            all_classes = ["All"] + sorted(df_perf_filtered["Class"].dropna().unique().tolist()) if "Class" in df_perf_filtered.columns else ["All"]
-            filter_class = st.selectbox("Class", all_classes, key="perf_class")
+            all_classes = ["All"] + sorted(df_perf["Class"].dropna().unique().tolist()) if "Class" in df_perf.columns else ["All"]
+            filter_class = st.selectbox("Class", all_classes, key="grades_class")
         with col3:
-            all_subjects = ["All"] + sorted(df_perf_filtered["Subject"].dropna().unique().tolist()) if "Subject" in df_perf_filtered.columns else ["All"]
-            filter_subject = st.selectbox("Subject", all_subjects, key="perf_subject")
+            all_subjects = ["All"] + sorted(df_perf["Subject"].dropna().unique().tolist()) if "Subject" in df_perf.columns else ["All"]
+            filter_subject = st.selectbox("Subject", all_subjects, key="grades_subject")
         with col4:
-            all_grades = ["All"] + sorted(df_perf_filtered["Grade"].dropna().unique().tolist()) if "Grade" in df_perf_filtered.columns else ["All"]
-            filter_grade = st.selectbox("Grade", all_grades, key="perf_grade")
+            all_grade_vals = ["All"] + sorted(df_perf["Grade"].dropna().unique().tolist()) if "Grade" in df_perf.columns else ["All"]
+            filter_grade = st.selectbox("Grade", all_grade_vals, key="grades_grade")
         
-        filtered = df_perf_filtered.copy()
+        filtered = df_perf.copy()
         if filter_student != "All" and "Student Name" in filtered.columns:
             filtered = filtered[filtered["Student Name"].astype(str).str.strip() == filter_student.strip()]
         if filter_class != "All" and "Class" in filtered.columns:
@@ -1095,10 +1145,74 @@ def admin_overview():
         if filter_grade != "All" and "Grade" in filtered.columns:
             filtered = filtered[filtered["Grade"].astype(str).str.strip() == filter_grade.strip()]
         
+        # Summary stats
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            st.metric("Total Records", len(filtered))
+        with col2:
+            avg_mark = filtered["Mark"].astype(float).mean() if "Mark" in filtered.columns and not filtered.empty else 0
+            st.metric("Average Mark", f"{avg_mark:.1f}%")
+        with col3:
+            a_count = len(filtered[filtered["Grade"].astype(str).str.strip() == "A"]) if "Grade" in filtered.columns else 0
+            st.metric("A Grades", a_count)
+        with col4:
+            pass_count = len(filtered[filtered["Grade"].astype(str).str.strip().isin(["A", "B", "C"])]) if "Grade" in filtered.columns else 0
+            st.metric("Passes (A-C)", pass_count)
+        with col5:
+            fail_count = len(filtered[filtered["Grade"].astype(str).str.strip().isin(["E", "F"])]) if "Grade" in filtered.columns else 0
+            st.metric("Fails (E-F)", fail_count)
+        
+        st.markdown("---")
         st.markdown(f"**Showing {len(filtered)} record(s)**")
-        st.dataframe(filtered, use_container_width=True, hide_index=True)
+        
+        # Display with colored grades
+        if not filtered.empty:
+            html = '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
+            html += f'<tr style="background-color:{MAROON}; color:{WHITE};">'
+            for col in filtered.columns:
+                html += f'<th style="padding:10px 12px; text-align:left;">{col}</th>'
+            html += '</tr>'
+            
+            for idx, row in filtered.iterrows():
+                bg = CARD_ALT_ROW if idx % 2 == 0 else WHITE
+                html += f'<tr style="background-color:{bg};">'
+                for col in filtered.columns:
+                    val = row[col]
+                    if col == "Grade":
+                        gc = grade_color(str(val).strip())
+                        html += f'<td style="padding:10px 12px; font-weight:bold; color:{gc};">{val}</td>'
+                    elif col == "Mark":
+                        html += f'<td style="padding:10px 12px;">{val}%</td>'
+                    else:
+                        html += f'<td style="padding:10px 12px;">{val}</td>'
+                html += '</tr>'
+            html += '</table>'
+            st.markdown(html, unsafe_allow_html=True)
     else:
-        st.info("No performance records found for this term.")
+        st.info("No grade records found.")
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    # ============================================================
+    # GRADING SCALE REFERENCE
+    # ============================================================
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Grading Scale</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    scale_data = [
+        ("A", "75% and above", GREEN, "Excellent"),
+        ("B", "60% - 74%", "#8BC34A", "Good"),
+        ("C", "50% - 59%", "#FFC107", "Satisfactory"),
+        ("D", "45% - 49%", "#FF9800", "Needs Improvement"),
+        ("E", "40% - 44%", "#FF5722", "At Risk"),
+        ("F", "Below 40%", RED, "Fail"),
+    ]
+    
+    html = '<table style="width:100%; border-collapse:collapse;">'
+    html += f'<tr style="background-color:{MAROON}; color:{WHITE};"><th style="padding:10px;">Grade</th><th style="padding:10px;">Mark Range</th><th style="padding:10px;">Description</th></tr>'
+    for grade, mark_range, color, desc in scale_data:
+        html += f'<tr><td style="padding:10px; font-weight:bold; font-size:18px; color:{color};">{grade}</td><td style="padding:10px;">{mark_range}</td><td style="padding:10px;">{desc}</td></tr>'
+    html += '</table>'
+    st.markdown(html, unsafe_allow_html=True)
     
     st.markdown('</div></div>', unsafe_allow_html=True)
 
@@ -1230,8 +1344,15 @@ def admin_enter_performance():
         subject = st.text_input("Subject*", placeholder="e.g., Mathematics")
     
     with col2:
-        mark = st.number_input("Mark*", min_value=0, max_value=100, step=1)
-        grade = st.selectbox("Grade", ["A+", "A", "B", "C", "D", "E", "F"])
+        mark = st.number_input("Mark (%)*", min_value=0, max_value=100, step=1)
+        auto_grade = calculate_grade(mark)
+        grade_color_display = grade_color(auto_grade)
+        st.markdown(f"""
+        <div style="margin-top: 10px; padding: 12px; background-color: {OFF_WHITE}; border-radius: 8px; border: 1px solid {CARD_BORDER};">
+            <span style="color: {MAROON_TEXT}; font-size: 14px;">Auto-Calculated Grade: </span>
+            <span style="color: {grade_color_display}; font-size: 24px; font-weight: bold;">{auto_grade}</span>
+        </div>
+        """, unsafe_allow_html=True)
         comment = st.text_area("Comment", placeholder="Teacher's comment...")
     
     student_class = ""
@@ -1247,10 +1368,10 @@ def admin_enter_performance():
             st.error("Please enter a subject.")
         else:
             success = write_data("Performance", [
-                student_name, student_class, term, subject, mark, grade, comment
+                student_name, student_class, term, subject, mark, auto_grade, comment
             ])
             if success:
-                st.success(f"Result saved for {student_name} - {subject}!")
+                st.success(f"Result saved for {student_name} - {subject}: {mark}% ({auto_grade})")
             else:
                 st.error("Failed to save result.")
     
