@@ -18,7 +18,7 @@ st.set_page_config(
     page_title="Zebra Academy Portal",
     page_icon="ZA",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ============================================================
