@@ -47,7 +47,6 @@ LIGHT_GREY = "#E0D5D8"
 def inject_css():
     st.markdown(f"""
     <style>
-        /* Force Light Theme */
         @media (prefers-color-scheme: dark) {{
             :root {{
                 --background-color: {OFF_WHITE};
@@ -55,33 +54,27 @@ def inject_css():
             }}
         }}
         
-        /* Global Font */
         * {{
             font-family: 'Georgia', 'Times New Roman', serif !important;
         }}
         
-        /* Material Icons Fix */
         [style*="Material Symbols"] {{
             font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
                          'Material Symbols Sharp', sans-serif !important;
         }}
         
-        /* Button Text Fix */
         .stButton > button p, .stButton > button span, .stButton > button div {{
             color: {WHITE} !important;
         }}
         
-        /* Tab Text Fix */
         .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span {{
             color: {WHITE} !important;
         }}
         
-        /* Main Container */
         [data-testid="stAppViewContainer"] {{
             background-color: {OFF_WHITE};
         }}
         
-        /* Sidebar */
         [data-testid="stSidebar"] {{
             background-color: {MAROON};
             min-width: 300px !important;
@@ -99,12 +92,10 @@ def inject_css():
         [data-testid="stSidebar"] button:hover {{
             background-color: {MAROON_DARK} !important;
         }}
-        /* Hide sidebar collapse */
         [data-testid="collapsedControl"] {{
             display: none;
         }}
         
-        /* Top Banner */
         .top-banner {{
             background-color: {MAROON};
             padding: 20px 40px;
@@ -123,7 +114,6 @@ def inject_css():
             font-size: 28px;
         }}
         
-        /* Login Container */
         .login-container {{
             max-width: 450px;
             margin: 0 auto;
@@ -134,7 +124,6 @@ def inject_css():
             border: 1px solid {CARD_BORDER};
         }}
         
-        /* Bottom Footer */
         .bottom-footer {{
             background-color: {MAROON};
             color: {WHITE};
@@ -147,7 +136,6 @@ def inject_css():
             font-size: 13px;
         }}
         
-        /* Dashboard Cards */
         .dash-card {{
             background: {WHITE};
             border-radius: 10px;
@@ -166,7 +154,6 @@ def inject_css():
             padding: 20px;
         }}
         
-        /* Metric Cards */
         .metric-card {{
             background: {WHITE};
             border-radius: 10px;
@@ -186,7 +173,6 @@ def inject_css():
             letter-spacing: 1px;
         }}
         
-        /* Tables */
         .dash-card table {{
             width: 100%;
             border-collapse: collapse;
@@ -205,7 +191,6 @@ def inject_css():
             background-color: {CARD_ALT_ROW};
         }}
         
-        /* Positive/Negative */
         .positive {{
             color: {GREEN};
             font-weight: bold;
@@ -215,7 +200,6 @@ def inject_css():
             font-weight: bold;
         }}
         
-        /* Profile Avatar */
         .avatar-circle {{
             width: 100px;
             height: 100px;
@@ -230,12 +214,10 @@ def inject_css():
             margin: 0 auto;
         }}
         
-        /* Hide Streamlit branding */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         header {{visibility: hidden;}}
         
-        /* File upload fix */
         [data-testid="stFileUploadDropzone"] {{
             position: relative;
         }}
@@ -252,6 +234,30 @@ def inject_css():
         [data-testid="stFileUploadDropzone"] small {{
             display: none !important;
         }}
+        
+        .lifetime-badge {{
+            display: inline-block;
+            background-color: {MAROON};
+            color: {WHITE};
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+        }}
+        .term-badge {{
+            display: inline-block;
+            background-color: {SKY_BLUE};
+            color: {WHITE};
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+        }}
+        .section-divider {{
+            border: none;
+            border-top: 2px solid {MAROON};
+            margin: 30px 0;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -267,6 +273,7 @@ def init_session():
         'student_class': None,
         'current_page': "My Dashboard",
         'admin_page': "Overview",
+        'overview_term_filter': "All Time",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -279,7 +286,6 @@ def init_session():
 def connect_to_sheets():
     """Connect to Google Sheets using Streamlit secrets or local credentials."""
     try:
-        # Try Streamlit Cloud secrets first
         creds_dict = dict(st.secrets["connections"]["gsheet"])
         creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
         credentials = ServiceAccountCredentials.from_json_keyfile_dict(
@@ -287,7 +293,6 @@ def connect_to_sheets():
             scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         )
     except Exception:
-        # Fallback to local credentials.json for development
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
             "credentials.json",
             scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -392,7 +397,6 @@ def login_page():
         
         tab1, tab2 = st.tabs(["Student Login", "Admin Login"])
         
-        # --- Student Login ---
         with tab1:
             st.markdown("### Student Login")
             username = st.text_input("Username", key="student_user")
@@ -419,7 +423,6 @@ def login_page():
                 else:
                     st.error("Unable to load login data.")
         
-        # --- Admin Login ---
         with tab2:
             st.markdown("### Admin Login")
             admin_pass = st.text_input("Admin Password", type="password", key="admin_pass")
@@ -436,7 +439,6 @@ def login_page():
         
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Bottom footer
     st.markdown(f"""
     <div class="bottom-footer">
         &copy; {datetime.now().year} {SCHOOL_NAME}. All rights reserved.
@@ -461,7 +463,6 @@ def student_dashboard():
         
         st.markdown("---")
         
-        # Profile photo or initials
         df_profiles = load_data("Student Profiles")
         photo_b64 = None
         if not df_profiles.empty:
@@ -494,7 +495,6 @@ def student_dashboard():
         
         st.markdown("---")
         
-        # Navigation
         pages = ["My Dashboard", "My Performance", "My Fees", "My Attendance", "Profile Settings"]
         for page in pages:
             if st.button(page, key=f"nav_{page}", use_container_width=True):
@@ -503,11 +503,10 @@ def student_dashboard():
         
         st.markdown("---")
         if st.button("Logout", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.user_type = None
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
             st.rerun()
     
-    # Main content
     page = st.session_state.current_page
     
     if page == "My Dashboard":
@@ -525,7 +524,6 @@ def student_dashboard_home(student_name, student_class):
     st.markdown(f"## Welcome, {student_name}!")
     st.markdown(f"**Class:** {student_class}")
     
-    # Load student details
     df_students = load_data("Students")
     student_info = pd.DataFrame()
     if not df_students.empty:
@@ -586,13 +584,11 @@ def student_performance(student_name, student_class):
         st.info("No results found for you yet.")
         return
     
-    # Group by Term
     terms = my_perf["Term"].unique()
     for term in sorted(terms, reverse=True):
         term_data = my_perf[my_perf["Term"] == term]
         st.markdown(f"### {term}")
         
-        # Build display table
         display_cols = ["Subject", "Mark", "Grade", "Comment"]
         display_data = term_data[[c for c in display_cols if c in term_data.columns]]
         
@@ -698,7 +694,34 @@ def student_profile_settings():
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN DASHBOARD
+# ADMIN DASHBOARD - HELPERS
+# ============================================================
+def get_available_terms():
+    """Get unique terms from all financial and performance sheets."""
+    terms = set()
+    for sheet_name in ["Fee Payments", "Expenses", "Other Income", "Performance"]:
+        df = load_data(sheet_name)
+        if not df.empty and "Term" in df.columns:
+            df.columns = df.columns.astype(str).str.strip()
+            for t in df["Term"].dropna().unique():
+                terms.add(str(t).strip())
+    return sorted(list(terms), reverse=True)
+
+def filter_by_term(df, term):
+    """Filter dataframe by term if term column exists."""
+    if df.empty or term == "All Time" or "Term" not in df.columns:
+        return df
+    df.columns = df.columns.astype(str).str.strip()
+    return df[df["Term"].astype(str).str.strip() == term.strip()]
+
+def safe_sum(df, column_name):
+    """Safely sum a numeric column."""
+    if df.empty or column_name not in df.columns:
+        return 0.0
+    return pd.to_numeric(df[column_name], errors='coerce').sum()
+
+# ============================================================
+# ADMIN DASHBOARD - MAIN
 # ============================================================
 def admin_dashboard():
     with st.sidebar:
@@ -722,7 +745,6 @@ def admin_dashboard():
             "Record Other Income",
             "Salary Payments",
             "All Students",
-            "Financial Summary",
         ]
         
         for page in admin_pages:
@@ -732,12 +754,12 @@ def admin_dashboard():
         
         st.markdown("---")
         if st.button("Logout", key="admin_logout", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.user_type = None
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
             st.rerun()
     
-    # Route to correct page
     page = st.session_state.admin_page
+    
     if page == "Overview":
         admin_overview()
     elif page == "Register Student":
@@ -756,75 +778,333 @@ def admin_dashboard():
         admin_salary_payments()
     elif page == "All Students":
         admin_all_students()
-    elif page == "Financial Summary":
-        admin_financial_summary()
 
+# ============================================================
+# ADMIN OVERVIEW (REDESIGNED)
+# ============================================================
 def admin_overview():
     st.markdown("## Admin Overview")
     
-    df_students = load_data("Students")
-    df_payments = load_data("Fee Payments")
-    df_expenses = load_data("Expenses")
-    df_other_income = load_data("Other Income")
+    # ============================================================
+    # TERM FILTER
+    # ============================================================
+    available_terms = get_available_terms()
+    term_options = ["All Time"] + available_terms
     
+    col_filter, col_space = st.columns([1, 3])
+    with col_filter:
+        selected_term = st.selectbox(
+            "Filter Financials by Term",
+            term_options,
+            key="overview_term_filter"
+        )
+    
+    # ============================================================
+    # LOAD DATA - ALL TIME (never filtered)
+    # ============================================================
+    df_students = load_data("Students")
+    df_payments_all = load_data("Fee Payments")
+    df_expenses_all = load_data("Expenses")
+    df_other_income_all = load_data("Other Income")
+    df_performance_all = load_data("Performance")
+    df_salaries_all = load_data("Salaries")
+    
+    # All-time totals
     total_students = len(df_students) if not df_students.empty else 0
+    all_time_fees = safe_sum(df_payments_all, "Amount Paid")
+    all_time_other = safe_sum(df_other_income_all, "Amount")
+    all_time_expenses = safe_sum(df_expenses_all, "Amount")
+    all_time_income = all_time_fees + all_time_other
+    all_time_profit = all_time_income - all_time_expenses
+    
+    # ============================================================
+    # LOAD DATA - TERM FILTERED (for distribution)
+    # ============================================================
+    df_payments_term = filter_by_term(df_payments_all.copy(), selected_term)
+    df_expenses_term = filter_by_term(df_expenses_all.copy(), selected_term)
+    df_other_income_term = filter_by_term(df_other_income_all.copy(), selected_term)
+    
+    term_fees = safe_sum(df_payments_term, "Amount Paid")
+    term_other = safe_sum(df_other_income_term, "Amount")
+    term_expenses = safe_sum(df_expenses_term, "Amount")
+    term_income = term_fees + term_other
+    term_profit = term_income - term_expenses
+    
+    # Distribution uses term-filtered profit
+    investments = term_profit * 0.10
+    salaries_pool = term_profit * 0.20
+    tithe = term_profit * 0.10
+    alter = term_profit * 0.05
+    operations = term_profit * 0.10
+    net_profit = term_profit * 0.45
+    per_person = salaries_pool / 4
+    
+    # Classes count
+    class_count = "N/A"
+    if not df_students.empty:
+        df_students.columns = df_students.columns.astype(str).str.strip()
+        if "Class" in df_students.columns:
+            class_count = str(df_students["Class"].nunique())
+    
+    # ============================================================
+    # SECTION 1: ENROLLMENT (ALWAYS ALL-TIME)
+    # ============================================================
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{total_students}</div>
+            <div class="metric-label">Total Students Enrolled</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{class_count}</div>
+            <div class="metric-label">Classes</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${all_time_income:,.0f}</div>
+            <div class="metric-label">Lifetime Income</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${all_time_expenses:,.0f}</div>
+            <div class="metric-label">Lifetime Expenses</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    # ============================================================
+    # SECTION 2: FINANCIALS (TERM-FILTERED)
+    # ============================================================
+    badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
+    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Financials{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    # Income subsection
+    st.markdown("#### Income")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${term_fees:,.0f}</div>
+            <div class="metric-label">Fees Income</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${term_other:,.0f}</div>
+            <div class="metric-label">Other Income</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value" style="color: {MAROON};">${term_income:,.0f}</div>
+            <div class="metric-label">Total Income</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Expenses subsection
+    st.markdown("#### Expenses")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
+            <div class="metric-label">Total Expenses</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Profit subsection
+    st.markdown("#### Profit")
+    profit_color = GREEN if term_profit >= 0 else RED
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${term_income:,.0f}</div>
+            <div class="metric-label">Total Income</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
+            <div class="metric-label">Total Expenses</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value" style="color: {profit_color};">${term_profit:,.0f}</div>
+            <div class="metric-label">Gross Profit</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    # ============================================================
+    # SECTION 3: PROFIT DISTRIBUTION (TERM-FILTERED)
+    # ============================================================
+    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Profit Distribution{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    st.markdown(f"**Gross Profit to Distribute:** ${term_profit:,.0f}")
+    st.markdown("---")
+    
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${investments:,.0f}</div>
+            <div class="metric-label">Investments</div>
+            <div class="metric-label">10%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${salaries_pool:,.0f}</div>
+            <div class="metric-label">Salaries</div>
+            <div class="metric-label">20%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${tithe:,.0f}</div>
+            <div class="metric-label">Tithe</div>
+            <div class="metric-label">10%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${alter:,.0f}</div>
+            <div class="metric-label">Alter</div>
+            <div class="metric-label">5%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col5:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">${operations:,.0f}</div>
+            <div class="metric-label">Operations</div>
+            <div class="metric-label">10%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col6:
+        st.markdown(f"""
+        <div class="metric-card" style="border: 2px solid {GREEN};">
+            <div class="metric-value" style="color: {GREEN};">${net_profit:,.0f}</div>
+            <div class="metric-label">Retained Profit</div>
+            <div class="metric-label">45%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Salary split
+    st.markdown("---")
+    st.markdown("#### Salary Split (20% divided equally among 4 people = 5% each)")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-value">{total_students}</div>
-            <div class="metric-label">Total Students</div>
+            <div class="metric-value">${per_person:,.0f}</div>
+            <div class="metric-label">Mr Kawonde</div>
+            <div class="metric-label">5%</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        total_fees = 0
-        if not df_payments.empty:
-            df_payments.columns = df_payments.columns.astype(str).str.strip()
-            total_fees = df_payments["Amount Paid"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-value">${total_fees:,.0f}</div>
-            <div class="metric-label">Fees Collected</div>
+            <div class="metric-value">${per_person:,.0f}</div>
+            <div class="metric-label">Mrs Kawonde</div>
+            <div class="metric-label">5%</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        total_exp = 0
-        if not df_expenses.empty:
-            df_expenses.columns = df_expenses.columns.astype(str).str.strip()
-            total_exp = df_expenses["Amount"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-value">${total_exp:,.0f}</div>
-            <div class="metric-label">Total Expenses</div>
+            <div class="metric-value">${per_person:,.0f}</div>
+            <div class="metric-label">Nextvantage Analytics</div>
+            <div class="metric-label">5%</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
-        other_inc = 0
-        if not df_other_income.empty:
-            df_other_income.columns = df_other_income.columns.astype(str).str.strip()
-            other_inc = df_other_income["Amount"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-value">${other_inc:,.0f}</div>
-            <div class="metric-label">Other Income</div>
+            <div class="metric-value">${per_person:,.0f}</div>
+            <div class="metric-label">Miss Mutasvu</div>
+            <div class="metric-label">5%</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Net position
-    net = total_fees + other_inc - total_exp
-    color = GREEN if net >= 0 else RED
-    st.markdown(f"""
-    <div class="metric-card" style="max-width: 300px; margin: 20px auto;">
-        <div class="metric-value" style="color: {color};">${net:,.0f}</div>
-        <div class="metric-label">Net Position</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    # ============================================================
+    # SECTION 4: PERFORMANCE DATA (TERM-FILTERABLE)
+    # ============================================================
+    df_perf_filtered = filter_by_term(df_performance_all.copy(), selected_term)
+    
+    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Performance Records{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    if not df_perf_filtered.empty:
+        df_perf_filtered.columns = df_perf_filtered.columns.astype(str).str.strip()
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            all_students = ["All"] + sorted(df_perf_filtered["Student Name"].dropna().unique().tolist()) if "Student Name" in df_perf_filtered.columns else ["All"]
+            filter_student = st.selectbox("Student", all_students, key="perf_student")
+        with col2:
+            all_classes = ["All"] + sorted(df_perf_filtered["Class"].dropna().unique().tolist()) if "Class" in df_perf_filtered.columns else ["All"]
+            filter_class = st.selectbox("Class", all_classes, key="perf_class")
+        with col3:
+            all_subjects = ["All"] + sorted(df_perf_filtered["Subject"].dropna().unique().tolist()) if "Subject" in df_perf_filtered.columns else ["All"]
+            filter_subject = st.selectbox("Subject", all_subjects, key="perf_subject")
+        with col4:
+            all_grades = ["All"] + sorted(df_perf_filtered["Grade"].dropna().unique().tolist()) if "Grade" in df_perf_filtered.columns else ["All"]
+            filter_grade = st.selectbox("Grade", all_grades, key="perf_grade")
+        
+        filtered = df_perf_filtered.copy()
+        if filter_student != "All" and "Student Name" in filtered.columns:
+            filtered = filtered[filtered["Student Name"].astype(str).str.strip() == filter_student.strip()]
+        if filter_class != "All" and "Class" in filtered.columns:
+            filtered = filtered[filtered["Class"].astype(str).str.strip() == filter_class.strip()]
+        if filter_subject != "All" and "Subject" in filtered.columns:
+            filtered = filtered[filtered["Subject"].astype(str).str.strip() == filter_subject.strip()]
+        if filter_grade != "All" and "Grade" in filtered.columns:
+            filtered = filtered[filtered["Grade"].astype(str).str.strip() == filter_grade.strip()]
+        
+        st.markdown(f"**Showing {len(filtered)} record(s)**")
+        st.dataframe(filtered, use_container_width=True, hide_index=True)
+    else:
+        st.info("No performance records found for this term.")
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
+# ============================================================
+# ADMIN DATA ENTRY PAGES
+# ============================================================
 def admin_register_student():
     st.markdown("## Register New Student")
     
@@ -1149,7 +1429,6 @@ def admin_salary_payments():
     
     st.markdown('</div></div>', unsafe_allow_html=True)
     
-    # Show salary summary
     st.markdown('<div class="dash-card"><div class="dash-card-header">Salary Summary</div><div class="dash-card-body">', unsafe_allow_html=True)
     df_salaries = load_data("Salaries")
     if not df_salaries.empty:
@@ -1159,7 +1438,7 @@ def admin_salary_payments():
         st.markdown("#### Total per Recipient")
         for recipient in salary_recipients:
             rec_data = df_salaries[df_salaries["Recipient"].astype(str).str.strip() == recipient]
-            total = rec_data["Amount"].astype(float).sum() if not rec_data.empty else 0
+            total = safe_sum(rec_data, "Amount")
             st.markdown(f"**{recipient}:** ${total:,.2f}")
     else:
         st.info("No salary payments recorded.")
@@ -1180,162 +1459,6 @@ def admin_all_students():
         st.markdown(f"**Total:** {len(df_students)} student(s)")
     else:
         st.info("No students registered yet.")
-
-def admin_financial_summary():
-    st.markdown("## Financial Summary")
-    
-    st.markdown("### Profit Distribution")
-    st.markdown("*Based on total income (Fees + Other Income) minus total expenses*")
-    
-    df_payments = load_data("Fee Payments")
-    df_other_income = load_data("Other Income")
-    df_expenses = load_data("Expenses")
-    
-    total_fees = 0
-    total_other = 0
-    total_expenses = 0
-    
-    if not df_payments.empty:
-        df_payments.columns = df_payments.columns.astype(str).str.strip()
-        total_fees = df_payments["Amount Paid"].astype(float).sum()
-    
-    if not df_other_income.empty:
-        df_other_income.columns = df_other_income.columns.astype(str).str.strip()
-        total_other = df_other_income["Amount"].astype(float).sum()
-    
-    if not df_expenses.empty:
-        df_expenses.columns = df_expenses.columns.astype(str).str.strip()
-        total_expenses = df_expenses["Amount"].astype(float).sum()
-    
-    total_income = total_fees + total_other
-    gross_profit = total_income - total_expenses
-    
-    investments = gross_profit * 0.10
-    salaries = gross_profit * 0.20
-    tithe = gross_profit * 0.10
-    alter = gross_profit * 0.05
-    operations = gross_profit * 0.10
-    net_profit = gross_profit * 0.45
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${total_income:,.0f}</div>
-            <div class="metric-label">Total Income</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${total_expenses:,.0f}</div>
-            <div class="metric-label">Total Expenses</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        color = GREEN if gross_profit >= 0 else RED
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {color};">${gross_profit:,.0f}</div>
-            <div class="metric-label">Gross Profit</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    st.markdown("### Distribution Breakdown")
-    
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${investments:,.0f}</div>
-            <div class="metric-label">Investments (10%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${salaries:,.0f}</div>
-            <div class="metric-label">Salaries (20%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${tithe:,.0f}</div>
-            <div class="metric-label">Tithe (10%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${alter:,.0f}</div>
-            <div class="metric-label">Alter (5%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col5:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${operations:,.0f}</div>
-            <div class="metric-label">Operations (10%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col6:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {GREEN};">${net_profit:,.0f}</div>
-            <div class="metric-label">Net Profit (45%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Salary split
-    st.markdown("---")
-    st.markdown("### Salary Split (20% / 4 = 5% each)")
-    
-    per_person = salaries / 4
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Mr Kawonde (5%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Mrs Kawonde (5%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Nextvantage Analytics (5%)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Miss Mutasvu (5%)</div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # ============================================================
 # MAIN APP
