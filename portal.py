@@ -303,7 +303,7 @@ def load_data(sheet_name):
         try:
             sheet = client.open(SHEET_NAME).worksheet(sheet_name)
             df = pd.DataFrame(sheet.get_all_records())
-            df.columns = df.columns.str.strip()
+            df.columns = df.columns.astype(str).str.strip()
             return df
         except Exception as e:
             if attempt < 2:
@@ -401,7 +401,7 @@ def login_page():
             if st.button("Login", key="student_login_btn", use_container_width=True):
                 df_logins = load_data("Student Logins")
                 if not df_logins.empty:
-                    df_logins.columns = df_logins.columns.str.strip()
+                    df_logins.columns = df_logins.columns.astype(str).str.strip()
                     match = df_logins[
                         (df_logins["Username"].astype(str).str.strip() == username.strip()) &
                         (df_logins["Password"].astype(str).str.strip() == password.strip())
@@ -465,7 +465,7 @@ def student_dashboard():
         df_profiles = load_data("Student Profiles")
         photo_b64 = None
         if not df_profiles.empty:
-            df_profiles.columns = df_profiles.columns.str.strip()
+            df_profiles.columns = df_profiles.columns.astype(str).str.strip()
             profile = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
             if not profile.empty:
                 photo_b64 = profile.iloc[0].get("Profile Photo", "")
@@ -529,7 +529,7 @@ def student_dashboard_home(student_name, student_class):
     df_students = load_data("Students")
     student_info = pd.DataFrame()
     if not df_students.empty:
-        df_students.columns = df_students.columns.str.strip()
+        df_students.columns = df_students.columns.astype(str).str.strip()
         student_info = df_students[df_students["Student Name"].astype(str).str.strip() == student_name.strip()]
     
     col1, col2 = st.columns(2)
@@ -557,7 +557,7 @@ def student_dashboard_home(student_name, student_class):
         st.markdown('<div class="dash-card"><div class="dash-card-header">Fee Status</div><div class="dash-card-body">', unsafe_allow_html=True)
         df_fee_status = load_data("Fee Status")
         if not df_fee_status.empty:
-            df_fee_status.columns = df_fee_status.columns.str.strip()
+            df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
             fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).str.strip() == student_name.strip()]
             if not fee_row.empty:
                 for col in fee_row.columns:
@@ -578,7 +578,7 @@ def student_performance(student_name, student_class):
         st.info("No performance records found.")
         return
     
-    df_perf.columns = df_perf.columns.str.strip()
+    df_perf.columns = df_perf.columns.astype(str).str.strip()
     df_perf["Student Name"] = df_perf["Student Name"].astype(str).str.strip()
     my_perf = df_perf[df_perf["Student Name"] == student_name.strip()]
     
@@ -607,7 +607,7 @@ def student_fees(student_name, student_class):
     df_fee_status = load_data("Fee Status")
     
     if not df_fee_status.empty:
-        df_fee_status.columns = df_fee_status.columns.str.strip()
+        df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
         fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).str.strip() == student_name.strip()]
         
         st.markdown('<div class="dash-card"><div class="dash-card-header">Fee Summary</div><div class="dash-card-body">', unsafe_allow_html=True)
@@ -621,7 +621,7 @@ def student_fees(student_name, student_class):
         st.markdown('</div></div>', unsafe_allow_html=True)
     
     if not df_payments.empty:
-        df_payments.columns = df_payments.columns.str.strip()
+        df_payments.columns = df_payments.columns.astype(str).str.strip()
         my_payments = df_payments[df_payments["Student Name"].astype(str).str.strip() == student_name.strip()]
         
         st.markdown('<div class="dash-card"><div class="dash-card-header">Payment History</div><div class="dash-card-body">', unsafe_allow_html=True)
@@ -639,7 +639,7 @@ def student_attendance(student_name, student_class):
         st.info("No attendance records found.")
         return
     
-    df_att.columns = df_att.columns.str.strip()
+    df_att.columns = df_att.columns.astype(str).str.strip()
     my_att = df_att[df_att["Student Name"].astype(str).str.strip() == student_name.strip()]
     
     st.markdown('<div class="dash-card"><div class="dash-card-header">Last 5 Working Days</div><div class="dash-card-body">', unsafe_allow_html=True)
@@ -681,7 +681,7 @@ def student_profile_settings():
             if b64_str:
                 df_profiles = load_data("Student Profiles")
                 if not df_profiles.empty:
-                    df_profiles.columns = df_profiles.columns.str.strip()
+                    df_profiles.columns = df_profiles.columns.astype(str).str.strip()
                     existing = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
                     if not existing.empty:
                         row_idx = existing.index[0] + 2
@@ -782,7 +782,7 @@ def admin_overview():
     with col2:
         total_fees = 0
         if not df_payments.empty:
-            df_payments.columns = df_payments.columns.str.strip()
+            df_payments.columns = df_payments.columns.astype(str).str.strip()
             total_fees = df_payments["Amount Paid"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
@@ -794,7 +794,7 @@ def admin_overview():
     with col3:
         total_exp = 0
         if not df_expenses.empty:
-            df_expenses.columns = df_expenses.columns.str.strip()
+            df_expenses.columns = df_expenses.columns.astype(str).str.strip()
             total_exp = df_expenses["Amount"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
@@ -806,7 +806,7 @@ def admin_overview():
     with col4:
         other_inc = 0
         if not df_other_income.empty:
-            df_other_income.columns = df_other_income.columns.str.strip()
+            df_other_income.columns = df_other_income.columns.astype(str).str.strip()
             other_inc = df_other_income["Amount"].astype(float).sum()
         st.markdown(f"""
         <div class="metric-card">
@@ -887,7 +887,7 @@ def admin_record_fee():
     df_students = load_data("Students")
     student_list = ["Select student..."]
     if not df_students.empty:
-        df_students.columns = df_students.columns.str.strip()
+        df_students.columns = df_students.columns.astype(str).str.strip()
         student_list += df_students["Student Name"].tolist()
     
     col1, col2 = st.columns(2)
@@ -936,7 +936,7 @@ def admin_enter_performance():
     df_students = load_data("Students")
     student_list = ["Select student..."]
     if not df_students.empty:
-        df_students.columns = df_students.columns.str.strip()
+        df_students.columns = df_students.columns.astype(str).str.strip()
         student_list += df_students["Student Name"].tolist()
     
     col1, col2 = st.columns(2)
@@ -986,7 +986,7 @@ def admin_mark_attendance():
         
         df_students = load_data("Students")
         if not df_students.empty:
-            df_students.columns = df_students.columns.str.strip()
+            df_students.columns = df_students.columns.astype(str).str.strip()
             
             df_att = load_data("Attendance View")
             
@@ -995,7 +995,7 @@ def admin_mark_attendance():
             
             date_cols = []
             if not df_att.empty:
-                df_att.columns = df_att.columns.str.strip()
+                df_att.columns = df_att.columns.astype(str).str.strip()
                 date_cols = [c for c in df_att.columns if c != "Student Name"]
             
             if date_cols:
@@ -1153,7 +1153,7 @@ def admin_salary_payments():
     st.markdown('<div class="dash-card"><div class="dash-card-header">Salary Summary</div><div class="dash-card-body">', unsafe_allow_html=True)
     df_salaries = load_data("Salaries")
     if not df_salaries.empty:
-        df_salaries.columns = df_salaries.columns.str.strip()
+        df_salaries.columns = df_salaries.columns.astype(str).str.strip()
         st.dataframe(df_salaries, use_container_width=True, hide_index=True)
         
         st.markdown("#### Total per Recipient")
@@ -1170,7 +1170,7 @@ def admin_all_students():
     
     df_students = load_data("Students")
     if not df_students.empty:
-        df_students.columns = df_students.columns.str.strip()
+        df_students.columns = df_students.columns.astype(str).str.strip()
         
         search = st.text_input("Search by name...")
         if search:
@@ -1196,15 +1196,15 @@ def admin_financial_summary():
     total_expenses = 0
     
     if not df_payments.empty:
-        df_payments.columns = df_payments.columns.str.strip()
+        df_payments.columns = df_payments.columns.astype(str).str.strip()
         total_fees = df_payments["Amount Paid"].astype(float).sum()
     
     if not df_other_income.empty:
-        df_other_income.columns = df_other_income.columns.str.strip()
+        df_other_income.columns = df_other_income.columns.astype(str).str.strip()
         total_other = df_other_income["Amount"].astype(float).sum()
     
     if not df_expenses.empty:
-        df_expenses.columns = df_expenses.columns.str.strip()
+        df_expenses.columns = df_expenses.columns.astype(str).str.strip()
         total_expenses = df_expenses["Amount"].astype(float).sum()
     
     total_income = total_fees + total_other
