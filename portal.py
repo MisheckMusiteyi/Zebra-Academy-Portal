@@ -42,41 +42,80 @@ SKY_BLUE = "#5C1A29"
 LIGHT_GREY = "#E0D5D8"
 
 # ============================================================
-# CSS - ZEBRA ACADEMY MAROON THEME
+# CSS - ZEBRA ACADEMY MAROON THEME (STREAMLIT OVERRIDES FIXED)
 # ============================================================
 def inject_css():
     st.markdown(f"""
     <style>
-        @media (prefers-color-scheme: dark) {{
-            :root {{
-                --background-color: {OFF_WHITE};
-                --text-color: {MAROON_TEXT};
-            }}
+        /* ============================================= */
+        /* FORCE LIGHT THEME - OVERRIDE EVERYTHING */
+        /* ============================================= */
+        
+        :root, [data-theme="light"], [data-theme="dark"] {{
+            --background-color: {OFF_WHITE} !important;
+            --text-color: {MAROON_TEXT} !important;
+            --font: 'Georgia', 'Times New Roman', serif !important;
+            --primary-color: {MAROON} !important;
         }}
         
-        * {{
+        html, body, [data-testid="stAppViewContainer"], .main, .block-container {{
+            background-color: {OFF_WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        html, body, div, p, span, a, li, td, th, label, input, select, textarea, button {{
             font-family: 'Georgia', 'Times New Roman', serif !important;
         }}
         
-        [style*="Material Symbols"] {{
+        [style*="Material Symbols"], .material-symbols-outlined, .material-symbols-rounded,
+        .material-symbols-sharp, [data-testid="stMarkdownContainer"] span[style*="font-family: Material"] {{
             font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
                          'Material Symbols Sharp', sans-serif !important;
         }}
         
-        .stButton > button p, .stButton > button span, .stButton > button div {{
+        /* ============================================= */
+        /* BUTTONS */
+        /* ============================================= */
+        .stButton > button {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            border: none !important;
+            border-radius: 6px !important;
+            font-weight: bold !important;
+        }}
+        .stButton > button:hover {{
+            background-color: {MAROON_DARK} !important;
             color: {WHITE} !important;
         }}
+        .stButton > button p, .stButton > button span, .stButton > button div,
+        .stButton > button label, .stButton > button * {{
+            color: {WHITE} !important;
+            font-family: 'Georgia', 'Times New Roman', serif !important;
+        }}
         
-        .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span {{
+        /* ============================================= */
+        /* TABS */
+        /* ============================================= */
+        .stTabs [aria-selected="true"] {{
+            background-color: {MAROON} !important;
             color: {WHITE} !important;
         }}
-        
-        [data-testid="stAppViewContainer"] {{
-            background-color: {OFF_WHITE};
+        .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span,
+        .stTabs [aria-selected="true"] div, .stTabs [aria-selected="true"] * {{
+            color: {WHITE} !important;
+        }}
+        .stTabs [aria-selected="false"] {{
+            color: {MAROON_TEXT} !important;
+        }}
+        .stTabs [aria-selected="false"] p, .stTabs [aria-selected="false"] span {{
+            color: {MAROON_TEXT} !important;
         }}
         
+        /* ============================================= */
+        /* SIDEBAR */
+        /* ============================================= */
         [data-testid="stSidebar"] {{
-            background-color: {MAROON};
+            background-color: {MAROON} !important;
             min-width: 300px !important;
             max-width: 300px !important;
         }}
@@ -84,18 +123,107 @@ def inject_css():
             color: {WHITE} !important;
         }}
         [data-testid="stSidebar"] button {{
-            background-color: {SKY_BLUE} !important;
+            background-color: {MAROON_DARK} !important;
             border: none !important;
             border-radius: 6px !important;
             color: {WHITE} !important;
         }}
         [data-testid="stSidebar"] button:hover {{
-            background-color: {MAROON_DARK} !important;
+            background-color: #4A1522 !important;
+        }}
+        [data-testid="stSidebar"] button p, [data-testid="stSidebar"] button span,
+        [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
+            color: {WHITE} !important;
         }}
         [data-testid="collapsedControl"] {{
             display: none;
         }}
         
+        /* ============================================= */
+        /* HEADERS */
+        /* ============================================= */
+        h1, h2, h3, h4, h5, h6 {{
+            color: {MAROON} !important;
+            font-family: 'Georgia', 'Times New Roman', serif !important;
+        }}
+        
+        /* ============================================= */
+        /* INPUT FIELDS */
+        /* ============================================= */
+        input, textarea, select {{
+            color: {MAROON_TEXT} !important;
+            background-color: {WHITE} !important;
+            border: 1px solid {CARD_BORDER} !important;
+        }}
+        label, .stTextInput label, .stNumberInput label, .stSelectbox label, .stDateInput label {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* DATA FRAMES & TABLES */
+        /* ============================================= */
+        [data-testid="stDataFrame"] td, [data-testid="stTable"] td,
+        .stDataFrame td, .dataframe td {{
+            color: {MAROON_TEXT} !important;
+        }}
+        [data-testid="stDataFrame"] th, [data-testid="stTable"] th,
+        .stDataFrame th, .dataframe th {{
+            color: {WHITE} !important;
+            background-color: {MAROON} !important;
+        }}
+        
+        /* ============================================= */
+        /* METRICS */
+        /* ============================================= */
+        [data-testid="stMetricValue"] {{
+            color: {MAROON} !important;
+        }}
+        [data-testid="stMetricLabel"] {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* ALERTS */
+        /* ============================================= */
+        .stAlert, [data-testid="stAlert"] {{
+            color: {MAROON_TEXT} !important;
+        }}
+        .stAlert p, [data-testid="stAlert"] p {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* SELECTBOX DROPDOWN */
+        /* ============================================= */
+        .stSelectbox div[data-baseweb="select"] > div {{
+            color: {MAROON_TEXT} !important;
+            background-color: {WHITE} !important;
+        }}
+        
+        /* ============================================= */
+        /* RADIO BUTTONS */
+        /* ============================================= */
+        .stRadio label, .stRadio p, .stRadio span {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* CHECKBOX */
+        /* ============================================= */
+        .stCheckbox label, .stCheckbox p, .stCheckbox span {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* EXPANDER */
+        /* ============================================= */
+        .streamlit-expanderHeader {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* CUSTOM COMPONENTS */
+        /* ============================================= */
         .top-banner {{
             background-color: {MAROON};
             padding: 20px 40px;
@@ -109,7 +237,7 @@ def inject_css():
             border-radius: 8px;
         }}
         .top-banner h1 {{
-            color: {WHITE};
+            color: {WHITE} !important;
             margin: 0;
             font-size: 28px;
         }}
@@ -122,6 +250,12 @@ def inject_css():
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             border: 1px solid {CARD_BORDER};
+        }}
+        .login-container h3 {{
+            color: {MAROON} !important;
+        }}
+        .login-container label {{
+            color: {MAROON_TEXT} !important;
         }}
         
         .bottom-footer {{
@@ -145,13 +279,17 @@ def inject_css():
         }}
         .dash-card-header {{
             background-color: {MAROON};
-            color: {WHITE};
+            color: {WHITE} !important;
             padding: 14px 20px;
             font-size: 16px;
             font-weight: bold;
         }}
         .dash-card-body {{
             padding: 20px;
+        }}
+        .dash-card-body p, .dash-card-body span, .dash-card-body div,
+        .dash-card-body label, .dash-card-body li {{
+            color: {MAROON_TEXT} !important;
         }}
         
         .metric-card {{
@@ -178,25 +316,26 @@ def inject_css():
             border-collapse: collapse;
         }}
         .dash-card th {{
-            background-color: {MAROON};
-            color: {WHITE};
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
             padding: 10px 15px;
             text-align: left;
         }}
         .dash-card td {{
             padding: 10px 15px;
             border-bottom: 1px solid {CARD_BORDER};
+            color: {MAROON_TEXT} !important;
         }}
         .dash-card tr:nth-child(even) {{
             background-color: {CARD_ALT_ROW};
         }}
         
         .positive {{
-            color: {GREEN};
+            color: {GREEN} !important;
             font-weight: bold;
         }}
         .negative {{
-            color: {RED};
+            color: {RED} !important;
             font-weight: bold;
         }}
         
@@ -238,7 +377,7 @@ def inject_css():
         .lifetime-badge {{
             display: inline-block;
             background-color: {MAROON};
-            color: {WHITE};
+            color: {WHITE} !important;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
@@ -247,16 +386,37 @@ def inject_css():
         .term-badge {{
             display: inline-block;
             background-color: {SKY_BLUE};
-            color: {WHITE};
+            color: {WHITE} !important;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
             margin-left: 8px;
         }}
-        .section-divider {{
+        
+        hr, .section-divider {{
             border: none;
             border-top: 2px solid {MAROON};
             margin: 30px 0;
+        }}
+        
+        /* ============================================= */
+        /* MULTISELECT */
+        /* ============================================= */
+        .stMultiSelect label {{
+            color: {MAROON_TEXT} !important;
+        }}
+        .stMultiSelect div[data-baseweb="select"] > div {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* ============================================= */
+        /* DATE INPUT */
+        /* ============================================= */
+        .stDateInput label {{
+            color: {MAROON_TEXT} !important;
+        }}
+        .stDateInput input {{
+            color: {MAROON_TEXT} !important;
         }}
     </style>
     """, unsafe_allow_html=True)
@@ -818,9 +978,6 @@ def admin_dashboard():
 def admin_overview():
     st.markdown("## Admin Overview")
     
-    # ============================================================
-    # TERM FILTER
-    # ============================================================
     available_terms = get_available_terms()
     term_options = ["All Time"] + available_terms
     
@@ -832,15 +989,11 @@ def admin_overview():
             key="overview_term_filter"
         )
     
-    # ============================================================
-    # LOAD DATA - ALL TIME (never filtered)
-    # ============================================================
     df_students = load_data("Students")
     df_payments_all = load_data("Fee Payments")
     df_expenses_all = load_data("Expenses")
     df_other_income_all = load_data("Other Income")
     
-    # All-time totals
     total_students = len(df_students) if not df_students.empty else 0
     all_time_fees = safe_sum(df_payments_all, "Amount Paid")
     all_time_other = safe_sum(df_other_income_all, "Amount")
@@ -848,9 +1001,6 @@ def admin_overview():
     all_time_income = all_time_fees + all_time_other
     all_time_profit = all_time_income - all_time_expenses
     
-    # ============================================================
-    # LOAD DATA - TERM FILTERED (for distribution)
-    # ============================================================
     df_payments_term = filter_by_term(df_payments_all.copy(), selected_term)
     df_expenses_term = filter_by_term(df_expenses_all.copy(), selected_term)
     df_other_income_term = filter_by_term(df_other_income_all.copy(), selected_term)
@@ -861,7 +1011,6 @@ def admin_overview():
     term_income = term_fees + term_other
     term_profit = term_income - term_expenses
     
-    # Distribution uses term-filtered profit
     investments = term_profit * 0.10
     salaries_pool = term_profit * 0.20
     tithe = term_profit * 0.10
@@ -870,7 +1019,6 @@ def admin_overview():
     net_profit = term_profit * 0.45
     per_person = salaries_pool / 4
     
-    # Classes count
     class_count = "N/A"
     if not df_students.empty:
         df_students.columns = df_students.columns.astype(str).str.strip()
@@ -920,7 +1068,6 @@ def admin_overview():
     badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
     st.markdown(f'<div class="dash-card"><div class="dash-card-header">Financials{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
     
-    # Income subsection
     st.markdown("#### Income")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -945,7 +1092,6 @@ def admin_overview():
         </div>
         """, unsafe_allow_html=True)
     
-    # Expenses subsection
     st.markdown("#### Expenses")
     col1, col2 = st.columns(2)
     with col1:
@@ -956,7 +1102,6 @@ def admin_overview():
         </div>
         """, unsafe_allow_html=True)
     
-    # Profit subsection
     st.markdown("#### Profit")
     profit_color = GREEN if term_profit >= 0 else RED
     col1, col2, col3 = st.columns(3)
@@ -1048,7 +1193,6 @@ def admin_overview():
         </div>
         """, unsafe_allow_html=True)
     
-    # Salary split
     st.markdown("---")
     st.markdown("#### Salary Split (20% divided equally among 4 people = 5% each)")
     
@@ -1100,7 +1244,6 @@ def admin_student_grades():
     
     df_performance_all = load_data("Performance")
     
-    # Term filter
     available_terms = get_available_terms()
     term_options = ["All Time"] + available_terms
     
@@ -1120,7 +1263,6 @@ def admin_student_grades():
     if not df_perf.empty:
         df_perf.columns = df_perf.columns.astype(str).str.strip()
         
-        # Filters
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             all_students = ["All"] + sorted(df_perf["Student Name"].dropna().unique().tolist()) if "Student Name" in df_perf.columns else ["All"]
@@ -1145,7 +1287,6 @@ def admin_student_grades():
         if filter_grade != "All" and "Grade" in filtered.columns:
             filtered = filtered[filtered["Grade"].astype(str).str.strip() == filter_grade.strip()]
         
-        # Summary stats
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.metric("Total Records", len(filtered))
@@ -1165,7 +1306,6 @@ def admin_student_grades():
         st.markdown("---")
         st.markdown(f"**Showing {len(filtered)} record(s)**")
         
-        # Display with colored grades
         if not filtered.empty:
             html = '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
             html += f'<tr style="background-color:{MAROON}; color:{WHITE};">'
@@ -1184,7 +1324,7 @@ def admin_student_grades():
                     elif col == "Mark":
                         html += f'<td style="padding:10px 12px;">{val}%</td>'
                     else:
-                        html += f'<td style="padding:10px 12px;">{val}</td>'
+                        html += f'<td style="padding:10px 12px; color:{MAROON_TEXT};">{val}</td>'
                 html += '</tr>'
             html += '</table>'
             st.markdown(html, unsafe_allow_html=True)
@@ -1193,9 +1333,6 @@ def admin_student_grades():
     
     st.markdown('</div></div>', unsafe_allow_html=True)
     
-    # ============================================================
-    # GRADING SCALE REFERENCE
-    # ============================================================
     st.markdown('<div class="dash-card"><div class="dash-card-header">Grading Scale</div><div class="dash-card-body">', unsafe_allow_html=True)
     
     scale_data = [
@@ -1210,7 +1347,7 @@ def admin_student_grades():
     html = '<table style="width:100%; border-collapse:collapse;">'
     html += f'<tr style="background-color:{MAROON}; color:{WHITE};"><th style="padding:10px;">Grade</th><th style="padding:10px;">Mark Range</th><th style="padding:10px;">Description</th></tr>'
     for grade, mark_range, color, desc in scale_data:
-        html += f'<tr><td style="padding:10px; font-weight:bold; font-size:18px; color:{color};">{grade}</td><td style="padding:10px;">{mark_range}</td><td style="padding:10px;">{desc}</td></tr>'
+        html += f'<tr><td style="padding:10px; font-weight:bold; font-size:18px; color:{color};">{grade}</td><td style="padding:10px; color:{MAROON_TEXT};">{mark_range}</td><td style="padding:10px; color:{MAROON_TEXT};">{desc}</td></tr>'
     html += '</table>'
     st.markdown(html, unsafe_allow_html=True)
     
