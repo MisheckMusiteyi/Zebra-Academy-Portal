@@ -141,6 +141,17 @@ def inject_css():
         /* and the inner sidebar toggle (collapse, maroon   */
         /* bg) across Streamlit versions, since both        */
         /* testids contain "ollapse".                        */
+        /*                                                   */
+        /* IMPORTANT: font-size:0 is set on the BUTTON       */
+        /* itself, not just its svg/span/p children. Some    */
+        /* Streamlit versions render the icon ligature text  */
+        /* as a bare text node directly inside the <button>, */
+        /* with no wrapping element - a selector that only   */
+        /* targets descendant span/svg/p never touches that  */
+        /* text, so it still shows through. Zeroing the      */
+        /* button's own font-size hides any such direct text */
+        /* node too; the ::after arrow below sets its own     */
+        /* font-size explicitly so it isn't affected.         */
         /* ============================================= */
         [data-testid*="ollapse" i] svg,
         [data-testid*="ollapse" i] span,
@@ -160,6 +171,9 @@ def inject_css():
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            font-size: 0 !important;
+            color: transparent !important;
+            line-height: 0 !important;
         }}
         [data-testid="collapsedControl"] button::after {{
             content: ">" !important;
@@ -482,6 +496,17 @@ def inject_css():
         /* ============================================= */
         /* FILE UPLOADER - fixed layout so instruction    */
         /* text and the Browse button don't overlap        */
+        /*                                                  */
+        /* IMPORTANT: Streamlit renders the "Browse files"  */
+        /* button with position:absolute by default. An      */
+        /* absolutely-positioned element is taken out of      */
+        /* normal flow entirely and positioned relative to    */
+        /* its nearest positioned ancestor - it does NOT       */
+        /* participate in the parent's flex layout at all,     */
+        /* so flex-direction/justify-content/gap on the         */
+        /* dropzone/section have no effect on it whatsoever      */
+        /* until position is reset back to static (the default    */
+        /* for a normal flex child) below.                          */
         /* ============================================= */
         [data-testid="stFileUploadDropzone"] {{
             background-color: {WHITE} !important;
@@ -517,8 +542,10 @@ def inject_css():
             justify-content: space-between !important;
             width: 100% !important;
             gap: 16px !important;
+            position: static !important;
         }}
         [data-testid="stFileUploadDropzone"] button {{
+            position: static !important;
             background-color: {MAROON} !important;
             color: {WHITE} !important;
             border: none !important;
@@ -529,6 +556,7 @@ def inject_css():
         [data-testid="stFileUploadDropzone"] button span,
         [data-testid="stFileUploadDropzone"] button p {{
             color: {WHITE} !important;
+            position: static !important;
         }}
         
         .lifetime-badge {{
