@@ -112,25 +112,21 @@ def inject_css():
         }}
         
         /* ============================================= */
-        /* SIDEBAR - FORCED VISIBLE, ROBUST TO STREAMLIT */
-        /* RESPONSIVE AUTO-COLLAPSE ON NARROW VIEWPORTS   */
+        /* SIDEBAR                                        */
         /* ============================================= */
-        section[data-testid="stSidebar"] {{
+        /* Only style colour/width for the EXPANDED sidebar. We
+           deliberately do NOT touch transform/visibility/width on the
+           collapsed (aria-expanded="false") state, and we do NOT force
+           transform:none - Streamlit uses a translateX() transform to
+           slide the sidebar off-screen when collapsed, and pinning
+           transform:none here (as an earlier version of this CSS did)
+           silently cancelled that animation, so the collapse/expand
+           arrow toggled the internal state but nothing ever moved. */
+        section[data-testid="stSidebar"][aria-expanded="true"] {{
             background-color: {MAROON} !important;
             min-width: 300px !important;
             max-width: 300px !important;
             width: 300px !important;
-            transform: none !important;
-            visibility: visible !important;
-            position: relative !important;
-        }}
-        section[data-testid="stSidebar"][aria-expanded="false"] {{
-            min-width: 300px !important;
-            max-width: 300px !important;
-            width: 300px !important;
-            margin-left: 0px !important;
-            transform: none !important;
-            visibility: visible !important;
         }}
         [data-testid="stSidebar"] * {{
             color: {WHITE} !important;
@@ -168,43 +164,39 @@ def inject_css():
            letter instead of an arrow. Using the real character sidesteps
            Python's escape parsing entirely. */
         
+        /* We hide the native icon glyph with opacity (not width/height:0
+           or display:none) so the button keeps its normal clickable box
+           and Streamlit's own click handler still fires. The arrow is
+           then drawn with an absolutely-positioned ::after centered over
+           the button, purely visual and not part of layout/click flow. */
+        
         /* Outer control - shown in the main content area when the
            sidebar is collapsed, used to re-open it. Sits on the light
            background, so the button + arrow are maroon. */
-        [data-testid="collapsedControl"] {{
-            display: flex !important;
-            visibility: visible !important;
-            z-index: 999999 !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }}
         [data-testid="collapsedControl"] button {{
             background-color: {MAROON} !important;
             border: none !important;
             border-radius: 50% !important;
-            width: 34px !important;
-            height: 34px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            position: relative !important;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
         }}
-        [data-testid="collapsedControl"] svg,
-        [data-testid="collapsedControl"] span,
-        [data-testid="collapsedControl"] p {{
-            font-size: 0 !important;
-            color: transparent !important;
-            width: 0 !important;
-            height: 0 !important;
-            display: inline-block !important;
+        [data-testid="collapsedControl"] button svg,
+        [data-testid="collapsedControl"] button span,
+        [data-testid="collapsedControl"] button p {{
+            opacity: 0 !important;
         }}
         [data-testid="collapsedControl"] button::after {{
             content: "❯" !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
             font-family: Arial, Helvetica, sans-serif !important;
             font-size: 16px !important;
             font-weight: bold !important;
             color: {WHITE} !important;
             line-height: 1 !important;
+            pointer-events: none !important;
         }}
         
         /* Inner control - the small button inside the open sidebar
@@ -214,9 +206,7 @@ def inject_css():
         [data-testid="stSidebarCollapseButton"],
         [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"],
         [data-testid="stSidebar"] button[kind="header"] {{
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            position: relative !important;
         }}
         [data-testid="stSidebarCollapseButton"] svg,
         [data-testid="stSidebarCollapseButton"] span,
@@ -224,20 +214,22 @@ def inject_css():
         [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] span,
         [data-testid="stSidebar"] button[kind="header"] svg,
         [data-testid="stSidebar"] button[kind="header"] span {{
-            font-size: 0 !important;
-            color: transparent !important;
-            width: 0 !important;
-            height: 0 !important;
+            opacity: 0 !important;
         }}
         [data-testid="stSidebarCollapseButton"]::after,
         [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"]::after,
         [data-testid="stSidebar"] button[kind="header"]::after {{
             content: "❮" !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
             font-family: Arial, Helvetica, sans-serif !important;
             font-size: 16px !important;
             font-weight: bold !important;
             color: {WHITE} !important;
             line-height: 1 !important;
+            pointer-events: none !important;
         }}
         
         /* ============================================= */
