@@ -41,6 +41,8 @@ GREEN = "#4CAF50"
 RED = "#E74C3C"
 SKY_BLUE = "#5C1A29"
 LIGHT_GREY = "#E0D5D8"
+FAINT_MAROON = "#F5F0F2"
+HOVER_MAROON = "#EDE0E3"
 
 # ============================================================
 # CSS - ZEBRA ACADEMY MAROON THEME
@@ -142,14 +144,71 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        [data-testid="stDataFrame"] td, [data-testid="stTable"] td,
-        .stDataFrame td, .dataframe td {{
-            color: {MAROON_TEXT} !important;
+        /* ============================================= */
+        /* ALL TABLES - ALTERNATING ROW COLORS */
+        /* ============================================= */
+        
+        [data-testid="stDataFrame"] table,
+        .stDataFrame table,
+        .dataframe table {{
+            border-collapse: collapse !important;
+            border: 1px solid {CARD_BORDER} !important;
         }}
-        [data-testid="stDataFrame"] th, [data-testid="stTable"] th,
-        .stDataFrame th, .dataframe th {{
-            color: {WHITE} !important;
+        [data-testid="stDataFrame"] th,
+        .stDataFrame th,
+        .dataframe th {{
             background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            padding: 12px 15px !important;
+            font-weight: bold !important;
+            border-bottom: 2px solid {MAROON_DARK} !important;
+        }}
+        [data-testid="stDataFrame"] td,
+        .stDataFrame td,
+        .dataframe td {{
+            padding: 10px 15px !important;
+            color: {MAROON_TEXT} !important;
+            border-bottom: 1px solid {CARD_BORDER} !important;
+        }}
+        [data-testid="stDataFrame"] tr:nth-child(odd) td,
+        .stDataFrame tr:nth-child(odd) td,
+        .dataframe tr:nth-child(odd) td {{
+            background-color: {WHITE} !important;
+        }}
+        [data-testid="stDataFrame"] tr:nth-child(even) td,
+        .stDataFrame tr:nth-child(even) td,
+        .dataframe tr:nth-child(even) td {{
+            background-color: {FAINT_MAROON} !important;
+        }}
+        [data-testid="stDataFrame"] tr:hover td,
+        .stDataFrame tr:hover td,
+        .dataframe tr:hover td {{
+            background-color: {HOVER_MAROON} !important;
+        }}
+        
+        [data-testid="stTable"] table {{
+            border-collapse: collapse !important;
+            border: 1px solid {CARD_BORDER} !important;
+        }}
+        [data-testid="stTable"] th {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            padding: 12px 15px !important;
+            font-weight: bold !important;
+        }}
+        [data-testid="stTable"] td {{
+            padding: 10px 15px !important;
+            color: {MAROON_TEXT} !important;
+            border-bottom: 1px solid {CARD_BORDER} !important;
+        }}
+        [data-testid="stTable"] tr:nth-child(odd) td {{
+            background-color: {WHITE} !important;
+        }}
+        [data-testid="stTable"] tr:nth-child(even) td {{
+            background-color: {FAINT_MAROON} !important;
+        }}
+        [data-testid="stTable"] tr:hover td {{
+            background-color: {HOVER_MAROON} !important;
         }}
         
         [data-testid="stMetricValue"] {{
@@ -251,6 +310,62 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
+        /* Custom tables inside dash cards */
+        .dash-card table {{
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid {CARD_BORDER};
+        }}
+        .dash-card th {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid {MAROON_DARK};
+        }}
+        .dash-card td {{
+            padding: 10px 15px;
+            border-bottom: 1px solid {CARD_BORDER};
+            color: {MAROON_TEXT} !important;
+        }}
+        .dash-card tr:nth-child(odd) td {{
+            background-color: {WHITE};
+        }}
+        .dash-card tr:nth-child(even) td {{
+            background-color: {FAINT_MAROON};
+        }}
+        .dash-card tr:hover td {{
+            background-color: {HOVER_MAROON} !important;
+        }}
+        
+        .dash-card-body table {{
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid {CARD_BORDER};
+        }}
+        .dash-card-body table th {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+        }}
+        .dash-card-body table td {{
+            padding: 10px 15px;
+            border-bottom: 1px solid {CARD_BORDER};
+            color: {MAROON_TEXT} !important;
+        }}
+        .dash-card-body table tr:nth-child(odd) td {{
+            background-color: {WHITE};
+        }}
+        .dash-card-body table tr:nth-child(even) td {{
+            background-color: {FAINT_MAROON};
+        }}
+        .dash-card-body table tr:hover td {{
+            background-color: {HOVER_MAROON} !important;
+        }}
+        
         .metric-card {{
             background: {WHITE};
             border-radius: 10px;
@@ -288,25 +403,6 @@ def inject_css():
             .metric-grid-2, .metric-grid-3, .metric-grid-4, .metric-grid-6 {{
                 grid-template-columns: 1fr;
             }}
-        }}
-        
-        .dash-card table {{
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        .dash-card th {{
-            background-color: {MAROON} !important;
-            color: {WHITE} !important;
-            padding: 10px 15px;
-            text-align: left;
-        }}
-        .dash-card td {{
-            padding: 10px 15px;
-            border-bottom: 1px solid {CARD_BORDER};
-            color: {MAROON_TEXT} !important;
-        }}
-        .dash-card tr:nth-child(even) {{
-            background-color: {CARD_ALT_ROW};
         }}
         
         .positive {{
@@ -832,7 +928,7 @@ def student_attendance(student_name, student_class):
         for i, col in enumerate(date_cols):
             val = str(row[col]).strip()
             status_class = "positive" if val == "Present" else ("negative" if val == "Absent" else "")
-            bg = CARD_ALT_ROW if i % 2 == 0 else WHITE
+            bg = FAINT_MAROON if i % 2 == 0 else WHITE
             html += f'<tr style="background-color:{bg};">'
             html += f'<td style="padding:12px;">{col}</td>'
             html += f'<td style="padding:12px;"><span class="{status_class}">{val}</span></td>'
@@ -1178,17 +1274,17 @@ def admin_student_grades():
             html += '</tr>'
             
             for idx, row in filtered.iterrows():
-                bg = CARD_ALT_ROW if idx % 2 == 0 else WHITE
-                html += f'<tr style="background-color:{bg};">'
+                bg = FAINT_MAROON if idx % 2 == 0 else WHITE
+                html += f'<tr>'
                 for col in filtered.columns:
                     val = row[col]
                     if col == "Grade":
                         gc = grade_color(str(val).strip())
-                        html += f'<td style="padding:10px 12px; font-weight:bold; color:{gc};">{val}</td>'
+                        html += f'<td style="padding:10px 12px; font-weight:bold; color:{gc}; background-color:{bg};">{val}</td>'
                     elif col == "Mark":
-                        html += f'<td style="padding:10px 12px;">{val}%</td>'
+                        html += f'<td style="padding:10px 12px; background-color:{bg};">{val}%</td>'
                     else:
-                        html += f'<td style="padding:10px 12px; color:{MAROON_TEXT};">{val}</td>'
+                        html += f'<td style="padding:10px 12px; color:{MAROON_TEXT}; background-color:{bg};">{val}</td>'
                 html += '</tr>'
             html += '</table>'
             st.markdown(html, unsafe_allow_html=True)
