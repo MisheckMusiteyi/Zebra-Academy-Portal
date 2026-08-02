@@ -672,6 +672,15 @@ def get_initials(name):
         return parts[0][0].upper()
     return "ZA"
 
+def normalize_name(name):
+    """Normalize a name for matching: collapse internal whitespace, strip
+    ends, and lowercase. Used everywhere a student's logged-in name is
+    matched against a name typed into a different sheet (Performance,
+    Fee Payments, Attendance View, etc.), since those are entered by
+    different people at different times and easily drift apart in
+    capitalization or spacing even when they "look" the same."""
+    return re.sub(r"\s+", " ", str(name).strip()).lower()
+
 # ============================================================
 # LOGIN PAGE
 # ============================================================
@@ -822,7 +831,7 @@ def student_dashboard_home(student_name, student_class):
     student_info = pd.DataFrame()
     if not df_students.empty:
         df_students.columns = df_students.columns.astype(str).str.strip()
-        student_info = df_students[df_students["Student Name"].astype(str).str.strip() == student_name.strip()]
+        student_info = df_students[df_students["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
     
     col1, col2 = st.columns(2)
     
@@ -850,7 +859,7 @@ def student_dashboard_home(student_name, student_class):
         df_fee_status = load_data("Fee Status")
         if not df_fee_status.empty:
             df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
-            fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).str.strip() == student_name.strip()]
+            fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
             if not fee_row.empty:
                 for col in fee_row.columns:
                     if col != "Student Name":
@@ -872,10 +881,27 @@ def student_performance(student_name, student_class):
     
     df_perf.columns = df_perf.columns.astype(str).str.strip()
     df_perf["Student Name"] = df_perf["Student Name"].astype(str).str.strip()
-    my_perf = df_perf[df_perf["Student Name"] == student_name.strip()]
+    my_perf = df_perf[df_perf["Student Name"].apply(normalize_name) == normalize_name(student_name)]
     
     if my_perf.empty:
         st.info("No results found for you yet.")
+        # Diagnostic: this only shows up when nothing matched, so it's
+        # invisible to students in the normal case. It exists because
+        # "no results" here almost always means the name in the
+        # Performance sheet doesn't exactly match the name on this
+        # student's login row - different spacing, capitalization, or a
+        # typo - rather than the record genuinely being missing.
+        with st.expander("Not seeing an entry you know exists? Click here"):
+            st.markdown(f"**Your logged-in name:** `{student_name}`")
+            sheet_names = sorted(df_perf["Student Name"].unique().tolist())
+            st.markdown("**Names currently in the Performance sheet:**")
+            st.write(sheet_names)
+            st.caption(
+                "If your name above looks the same as one in the list but still "
+                "isn't matching, check for a typo, an extra space, or different "
+                "capitalization in whichever sheet (Students, Student Logins, or "
+                "Performance) it was typed into."
+            )
         return
     
     terms = my_perf["Term"].unique()
@@ -898,7 +924,7 @@ def student_fees(student_name, student_class):
     
     if not df_fee_status.empty:
         df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
-        fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).str.strip() == student_name.strip()]
+        fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
         
         st.markdown('<div class="dash-card"><div class="dash-card-header">Fee Summary</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not fee_row.empty:
@@ -912,7 +938,7 @@ def student_fees(student_name, student_class):
     
     if not df_payments.empty:
         df_payments.columns = df_payments.columns.astype(str).str.strip()
-        my_payments = df_payments[df_payments["Student Name"].astype(str).str.strip() == student_name.strip()]
+        my_payments = df_payments[df_payments["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
         
         st.markdown('<div class="dash-card"><div class="dash-card-header">Payment History</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not my_payments.empty:
@@ -930,7 +956,7 @@ def student_attendance(student_name, student_class):
         return
     
     df_att.columns = df_att.columns.astype(str).str.strip()
-    my_att = df_att[df_att["Student Name"].astype(str).str.strip() == student_name.strip()]
+    my_att = df_att[df_att["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
     
     st.markdown('<div class="dash-card"><div class="dash-card-header">Last 5 Working Days</div><div class="dash-card-body">', unsafe_allow_html=True)
     if not my_att.empty:
