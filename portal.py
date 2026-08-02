@@ -148,17 +148,87 @@ def inject_css():
         [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
             color: {WHITE} !important;
         }}
-        /* Keep the collapse/expand arrow visible and legible instead of
+        /* Keep the collapse/expand control visible and legible instead of
            hiding it - hiding it is what strands users when Streamlit
-           auto-collapses the sidebar on narrow/embedded viewports. */
+           auto-collapses the sidebar on narrow/embedded viewports.
+           
+           Streamlit renders this icon using a ligature font (Material
+           Symbols) that reads out as literal text like
+           "keyboard_double_arrow_right" if that font fails to load.
+           Instead of depending on that font, we hide whatever native
+           icon/text Streamlit renders and draw our own simple arrow
+           with a CSS pseudo-element. */
+        
+        /* Outer control - shown in the main content area when the
+           sidebar is collapsed, used to re-open it. Sits on the light
+           background, so the button + arrow are maroon. */
         [data-testid="collapsedControl"] {{
             display: flex !important;
             visibility: visible !important;
-            color: {MAROON} !important;
             z-index: 999999 !important;
+            align-items: center !important;
+            justify-content: center !important;
         }}
-        [data-testid="collapsedControl"] svg {{
-            fill: {MAROON} !important;
+        [data-testid="collapsedControl"] button {{
+            background-color: {MAROON} !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 34px !important;
+            height: 34px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+        }}
+        [data-testid="collapsedControl"] svg,
+        [data-testid="collapsedControl"] span,
+        [data-testid="collapsedControl"] p {{
+            font-size: 0 !important;
+            color: transparent !important;
+            width: 0 !important;
+            height: 0 !important;
+            display: inline-block !important;
+        }}
+        [data-testid="collapsedControl"] button::after {{
+            content: "\276F" !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: {WHITE} !important;
+            line-height: 1 !important;
+        }}
+        
+        /* Inner control - the small button inside the open sidebar
+           used to collapse it. Sits on the maroon sidebar background,
+           so the arrow is white. Covers the testids used across
+           recent Streamlit versions. */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"],
+        [data-testid="stSidebar"] button[kind="header"] {{
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }}
+        [data-testid="stSidebarCollapseButton"] svg,
+        [data-testid="stSidebarCollapseButton"] span,
+        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] svg,
+        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] span,
+        [data-testid="stSidebar"] button[kind="header"] svg,
+        [data-testid="stSidebar"] button[kind="header"] span {{
+            font-size: 0 !important;
+            color: transparent !important;
+            width: 0 !important;
+            height: 0 !important;
+        }}
+        [data-testid="stSidebarCollapseButton"]::after,
+        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"]::after,
+        [data-testid="stSidebar"] button[kind="header"]::after {{
+            content: "\276E" !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: {WHITE} !important;
+            line-height: 1 !important;
         }}
         
         /* ============================================= */
