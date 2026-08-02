@@ -417,6 +417,29 @@ def inject_css():
             letter-spacing: 1px;
         }}
         
+        /* Grid layouts for metric-card groups that are built as a single
+           HTML block (see admin_overview) instead of st.columns(), so
+           they render as real children of the dash-card that wraps them. */
+        .metric-grid {{
+            display: grid;
+            gap: 16px;
+            margin-bottom: 16px;
+        }}
+        .metric-grid-2 {{ grid-template-columns: repeat(2, 1fr); }}
+        .metric-grid-3 {{ grid-template-columns: repeat(3, 1fr); }}
+        .metric-grid-4 {{ grid-template-columns: repeat(4, 1fr); }}
+        .metric-grid-6 {{ grid-template-columns: repeat(6, 1fr); }}
+        @media (max-width: 900px) {{
+            .metric-grid-3, .metric-grid-4, .metric-grid-6 {{
+                grid-template-columns: repeat(2, 1fr);
+            }}
+        }}
+        @media (max-width: 550px) {{
+            .metric-grid-2, .metric-grid-3, .metric-grid-4, .metric-grid-6 {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+        
         .dash-card table {{
             width: 100%;
             border-collapse: collapse;
@@ -1134,213 +1157,164 @@ def admin_overview():
     # ============================================================
     # SECTION 1: ENROLLMENT (ALWAYS ALL-TIME)
     # ============================================================
-    st.markdown('<div class="dash-card"><div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div><div class="dash-card-body">', unsafe_allow_html=True)
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{total_students}</div>
-            <div class="metric-label">Total Students Enrolled</div>
+    # NOTE: this whole card - header, body and every metric tile - is
+    # built as ONE html string and passed to a SINGLE st.markdown call.
+    # The previous version opened the <div class="dash-card"> in one
+    # st.markdown call, rendered the metric tiles via st.columns(), and
+    # closed the div in a third st.markdown call. Streamlit renders each
+    # of those calls into its own separate DOM fragment, so the open
+    # <div> was never actually wrapping the columns - the browser just
+    # auto-closed it immediately, leaving an empty white box (the
+    # "dash-card-body" with nothing in it) with the real metric tiles
+    # floating below, unstyled. Building the whole card as one string
+    # keeps everything genuinely nested inside the same element.
+    enrollment_html = f"""
+    <div class="dash-card">
+        <div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div>
+        <div class="dash-card-body">
+            <div class="metric-grid metric-grid-4">
+                <div class="metric-card">
+                    <div class="metric-value">{total_students}</div>
+                    <div class="metric-label">Total Students Enrolled</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{class_count}</div>
+                    <div class="metric-label">Classes</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${all_time_income:,.0f}</div>
+                    <div class="metric-label">Lifetime Income</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${all_time_expenses:,.0f}</div>
+                    <div class="metric-label">Lifetime Expenses</div>
+                </div>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">{class_count}</div>
-            <div class="metric-label">Classes</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${all_time_income:,.0f}</div>
-            <div class="metric-label">Lifetime Income</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${all_time_expenses:,.0f}</div>
-            <div class="metric-label">Lifetime Expenses</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    </div>
+    """
+    st.markdown(enrollment_html, unsafe_allow_html=True)
     
     # ============================================================
     # SECTION 2: FINANCIALS (TERM-FILTERED)
     # ============================================================
     badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
-    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Financials{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
-    
-    st.markdown("#### Income")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${term_fees:,.0f}</div>
-            <div class="metric-label">Fees Income</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${term_other:,.0f}</div>
-            <div class="metric-label">Other Income</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {MAROON};">${term_income:,.0f}</div>
-            <div class="metric-label">Total Income</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("#### Expenses")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
-            <div class="metric-label">Total Expenses</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("#### Profit")
     profit_color = GREEN if term_profit >= 0 else RED
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${term_income:,.0f}</div>
-            <div class="metric-label">Total Income</div>
+    financials_html = f"""
+    <div class="dash-card">
+        <div class="dash-card-header">Financials{badge_html}</div>
+        <div class="dash-card-body">
+            <h4>Income</h4>
+            <div class="metric-grid metric-grid-3">
+                <div class="metric-card">
+                    <div class="metric-value">${term_fees:,.0f}</div>
+                    <div class="metric-label">Fees Income</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${term_other:,.0f}</div>
+                    <div class="metric-label">Other Income</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" style="color: {MAROON};">${term_income:,.0f}</div>
+                    <div class="metric-label">Total Income</div>
+                </div>
+            </div>
+            <h4>Expenses</h4>
+            <div class="metric-grid metric-grid-2">
+                <div class="metric-card">
+                    <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
+                    <div class="metric-label">Total Expenses</div>
+                </div>
+            </div>
+            <h4>Profit</h4>
+            <div class="metric-grid metric-grid-3">
+                <div class="metric-card">
+                    <div class="metric-value">${term_income:,.0f}</div>
+                    <div class="metric-label">Total Income</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
+                    <div class="metric-label">Total Expenses</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" style="color: {profit_color};">${term_profit:,.0f}</div>
+                    <div class="metric-label">Gross Profit</div>
+                </div>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
-            <div class="metric-label">Total Expenses</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value" style="color: {profit_color};">${term_profit:,.0f}</div>
-            <div class="metric-label">Gross Profit</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    </div>
+    """
+    st.markdown(financials_html, unsafe_allow_html=True)
     
     # ============================================================
     # SECTION 3: PROFIT DISTRIBUTION (TERM-FILTERED)
     # ============================================================
-    st.markdown(f'<div class="dash-card"><div class="dash-card-header">Profit Distribution{badge_html}</div><div class="dash-card-body">', unsafe_allow_html=True)
-    
-    st.markdown(f"**Gross Profit to Distribute:** ${term_profit:,.0f}")
-    st.markdown("---")
-    
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${investments:,.0f}</div>
-            <div class="metric-label">Investments</div>
-            <div class="metric-label">10%</div>
+    distribution_html = f"""
+    <div class="dash-card">
+        <div class="dash-card-header">Profit Distribution{badge_html}</div>
+        <div class="dash-card-body">
+            <p><strong>Gross Profit to Distribute:</strong> ${term_profit:,.0f}</p>
+            <hr class="section-divider">
+            <div class="metric-grid metric-grid-6">
+                <div class="metric-card">
+                    <div class="metric-value">${investments:,.0f}</div>
+                    <div class="metric-label">Investments</div>
+                    <div class="metric-label">10%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${salaries_pool:,.0f}</div>
+                    <div class="metric-label">Salaries</div>
+                    <div class="metric-label">20%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${tithe:,.0f}</div>
+                    <div class="metric-label">Tithe</div>
+                    <div class="metric-label">10%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${alter:,.0f}</div>
+                    <div class="metric-label">Alter</div>
+                    <div class="metric-label">5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${operations:,.0f}</div>
+                    <div class="metric-label">Operations</div>
+                    <div class="metric-label">10%</div>
+                </div>
+                <div class="metric-card" style="border: 2px solid {GREEN};">
+                    <div class="metric-value" style="color: {GREEN};">${net_profit:,.0f}</div>
+                    <div class="metric-label">Retained Profit</div>
+                    <div class="metric-label">45%</div>
+                </div>
+            </div>
+            <hr class="section-divider">
+            <h4>Salary Split (20% divided equally among 4 people = 5% each)</h4>
+            <div class="metric-grid metric-grid-4">
+                <div class="metric-card">
+                    <div class="metric-value">${per_person:,.0f}</div>
+                    <div class="metric-label">Mr Kawonde</div>
+                    <div class="metric-label">5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${per_person:,.0f}</div>
+                    <div class="metric-label">Mrs Kawonde</div>
+                    <div class="metric-label">5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${per_person:,.0f}</div>
+                    <div class="metric-label">Nextvantage Analytics</div>
+                    <div class="metric-label">5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${per_person:,.0f}</div>
+                    <div class="metric-label">Miss Mutasvu</div>
+                    <div class="metric-label">5%</div>
+                </div>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${salaries_pool:,.0f}</div>
-            <div class="metric-label">Salaries</div>
-            <div class="metric-label">20%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${tithe:,.0f}</div>
-            <div class="metric-label">Tithe</div>
-            <div class="metric-label">10%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${alter:,.0f}</div>
-            <div class="metric-label">Alter</div>
-            <div class="metric-label">5%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col5:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${operations:,.0f}</div>
-            <div class="metric-label">Operations</div>
-            <div class="metric-label">10%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col6:
-        st.markdown(f"""
-        <div class="metric-card" style="border: 2px solid {GREEN};">
-            <div class="metric-value" style="color: {GREEN};">${net_profit:,.0f}</div>
-            <div class="metric-label">Retained Profit</div>
-            <div class="metric-label">45%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    st.markdown("#### Salary Split (20% divided equally among 4 people = 5% each)")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Mr Kawonde</div>
-            <div class="metric-label">5%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Mrs Kawonde</div>
-            <div class="metric-label">5%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Nextvantage Analytics</div>
-            <div class="metric-label">5%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-value">${per_person:,.0f}</div>
-            <div class="metric-label">Miss Mutasvu</div>
-            <div class="metric-label">5%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    </div>
+    """
+    st.markdown(distribution_html, unsafe_allow_html=True)
 
 # ============================================================
 # STUDENT GRADES PAGE
