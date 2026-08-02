@@ -127,9 +127,55 @@ def inject_css():
             color: {WHITE} !important;
         }}
         
-        /* Hide sidebar collapse/expand arrows completely */
-        [data-testid="collapsedControl"] {{
-            display: none !important;
+        /* ============================================= */
+        /* SIDEBAR COLLAPSE/EXPAND TOGGLE                 */
+        /* Streamlit renders this icon with a ligature    */
+        /* font; if that font fails to load, the raw name */
+        /* ("keyboard_double_arrow_left") shows as text.  */
+        /* We hide whatever native icon/text renders and  */
+        /* draw a plain arrow ourselves - using literal    */
+        /* characters (not CSS escape codes) so a Python   */
+        /* string-escaping bug can't corrupt it again.     */
+        /* The substring selector below matches both the   */
+        /* outer "collapsedControl" (re-open, light bg)     */
+        /* and the inner sidebar toggle (collapse, maroon   */
+        /* bg) across Streamlit versions, since both        */
+        /* testids contain "ollapse".                        */
+        /* ============================================= */
+        [data-testid*="ollapse" i] svg,
+        [data-testid*="ollapse" i] span,
+        [data-testid*="ollapse" i] p {{
+            font-size: 0 !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }}
+        [data-testid*="ollapse" i] button {{
+            background-color: {MAROON} !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 30px !important;
+            height: 30px !important;
+            min-width: 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }}
+        [data-testid="collapsedControl"] button::after {{
+            content: ">" !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: {WHITE} !important;
+            line-height: 1 !important;
+        }}
+        [data-testid*="ollapse" i]:not([data-testid="collapsedControl"]) button::after {{
+            content: "<" !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: {WHITE} !important;
+            line-height: 1 !important;
         }}
         
         h1, h2, h3, h4, h5, h6 {{
@@ -433,13 +479,56 @@ def inject_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         
-        [data-testid="stFileUploaderDropzoneInstructions"] div,
-        [data-testid="stFileUploaderDropzoneInstructions"] span {{
-            color: {MAROON} !important;
-            font-family: 'Georgia', 'Times New Roman', serif !important;
+        /* ============================================= */
+        /* FILE UPLOADER - fixed layout so instruction    */
+        /* text and the Browse button don't overlap        */
+        /* ============================================= */
+        [data-testid="stFileUploadDropzone"] {{
+            background-color: {WHITE} !important;
+            border: 2px dashed {CARD_BORDER} !important;
+            border-radius: 10px !important;
+            padding: 20px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 16px !important;
+            min-height: 70px !important;
         }}
-        [data-testid="stFileUploadDropzone"] small {{
-            display: none !important;
+        [data-testid="stFileUploaderDropzoneInstructions"] {{
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            flex: 1 1 auto !important;
+            min-width: 180px !important;
+        }}
+        [data-testid="stFileUploaderDropzoneInstructions"] div,
+        [data-testid="stFileUploaderDropzoneInstructions"] span,
+        [data-testid="stFileUploaderDropzoneInstructions"] small {{
+            color: {MAROON_TEXT} !important;
+            font-family: 'Georgia', 'Times New Roman', serif !important;
+            display: block !important;
+            position: static !important;
+        }}
+        [data-testid="stFileUploadDropzone"] section {{
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            gap: 16px !important;
+        }}
+        [data-testid="stFileUploadDropzone"] button {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+            border: none !important;
+            border-radius: 6px !important;
+            flex: 0 0 auto !important;
+            white-space: nowrap !important;
+        }}
+        [data-testid="stFileUploadDropzone"] button span,
+        [data-testid="stFileUploadDropzone"] button p {{
+            color: {WHITE} !important;
         }}
         
         .lifetime-badge {{
@@ -596,6 +685,19 @@ def get_initials(name):
 def normalize_name(name):
     return re.sub(r"\s+", " ", str(name).strip()).lower()
 
+def render_kv_table(pairs):
+    """Render a list of (label, value) pairs as a bordered table with
+    alternating faint-maroon rows."""
+    html = f'<table style="width:100%; border-collapse:collapse; border:1px solid {CARD_BORDER};">'
+    for i, (label, value) in enumerate(pairs):
+        bg = FAINT_MAROON if i % 2 == 0 else WHITE
+        html += f'<tr style="background-color:{bg};">'
+        html += f'<td style="padding:10px 12px; border:1px solid {CARD_BORDER}; color:{MAROON_TEXT}; width:45%;"><strong>{label}</strong></td>'
+        html += f'<td style="padding:10px 12px; border:1px solid {CARD_BORDER}; color:{MAROON_TEXT};">{value}</td>'
+        html += '</tr>'
+    html += '</table>'
+    st.markdown(html, unsafe_allow_html=True)
+
 # ============================================================
 # LOGIN PAGE
 # ============================================================
@@ -685,7 +787,7 @@ def student_dashboard():
         photo_b64 = None
         if not df_profiles.empty:
             df_profiles.columns = df_profiles.columns.astype(str).str.strip()
-            profile = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+            profile = df_profiles[df_profiles["Username"].astype(str).str.strip().str.lower() == st.session_state.username.strip().lower()]
             if not profile.empty:
                 photo_b64 = profile.iloc[0].get("Profile Photo", "")
                 if pd.notna(photo_b64) and str(photo_b64).strip():
@@ -762,8 +864,7 @@ def student_dashboard_home(student_name, student_class):
                 ("Address", s.get("Address", "N/A")),
                 ("Enrollment Date", s.get("Enrollment Date", "N/A")),
             ]
-            for label, value in details:
-                st.markdown(f"**{label}:** {value}")
+            render_kv_table(details)
         else:
             st.info("No details found.")
         st.markdown('</div></div>', unsafe_allow_html=True)
@@ -808,13 +909,13 @@ def student_dashboard_home(student_name, student_class):
             if latest_terms:
                 current_term = sorted(latest_terms, reverse=True)[0]
             
-            html = '<table style="width:100%; border-collapse:collapse;">'
-            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Student Number</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{student_number}</td></tr>'
-            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Class</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{student_class}</td></tr>'
-            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Registration Status</strong></td><td style="padding:8px 0;"><span style="color:{GREEN}; font-weight:bold;">{reg_status}</span></td></tr>'
-            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Current Term</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{current_term}</td></tr>'
-            html += '</table>'
-            st.markdown(html, unsafe_allow_html=True)
+            academic_details = [
+                ("Student Number", student_number),
+                ("Class", student_class),
+                ("Registration Status", f'<span style="color:{GREEN}; font-weight:bold;">{reg_status}</span>'),
+                ("Current Term", current_term),
+            ]
+            render_kv_table(academic_details)
         else:
             st.info("No academic details found.")
         st.markdown('</div></div>', unsafe_allow_html=True)
@@ -826,10 +927,8 @@ def student_dashboard_home(student_name, student_class):
             df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
             fee_row = df_fee_status[df_fee_status["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
             if not fee_row.empty:
-                for col in fee_row.columns:
-                    if col != "Student Name":
-                        val = fee_row.iloc[0][col]
-                        st.markdown(f"**{col}:** {val}")
+                financial_details = [(col, fee_row.iloc[0][col]) for col in fee_row.columns if col != "Student Name"]
+                render_kv_table(financial_details)
             else:
                 st.info("No fee data available.")
         else:
@@ -946,7 +1045,7 @@ def student_profile_settings():
                 df_profiles = load_data("Student Profiles")
                 if not df_profiles.empty:
                     df_profiles.columns = df_profiles.columns.astype(str).str.strip()
-                    existing = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                    existing = df_profiles[df_profiles["Username"].astype(str).str.strip().str.lower() == st.session_state.username.strip().lower()]
                     if not existing.empty:
                         row_idx = existing.index[0] + 2
                         update_cell("Student Profiles", row_idx, 3, b64_str)
@@ -958,6 +1057,53 @@ def student_profile_settings():
                         ])
                     st.success("Profile photo updated! Refresh to see changes.")
                     st.rerun()
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Change Username</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    st.markdown(f"**Current Username:** {st.session_state.username}")
+    new_username = st.text_input("New Username", placeholder="Enter a new username", key="new_username_input")
+    
+    if st.button("Update Username", use_container_width=True):
+        new_username_clean = new_username.strip()
+        if not new_username_clean:
+            st.error("Please enter a new username.")
+        elif new_username_clean == st.session_state.username:
+            st.warning("That's already your current username.")
+        else:
+            df_logins = load_data("Student Logins")
+            if df_logins.empty:
+                st.error("Unable to load login data.")
+            else:
+                df_logins.columns = df_logins.columns.astype(str).str.strip()
+                taken = df_logins[df_logins["Username"].astype(str).str.strip().str.lower() == new_username_clean.lower()]
+                if not taken.empty:
+                    st.error("That username is already taken. Please choose another.")
+                else:
+                    my_row = df_logins[df_logins["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                    if my_row.empty:
+                        st.error("Could not find your login record.")
+                    else:
+                        row_idx = my_row.index[0] + 2
+                        username_col_idx = df_logins.columns.get_loc("Username") + 1
+                        success = update_cell("Student Logins", row_idx, username_col_idx, new_username_clean)
+                        
+                        if success:
+                            df_profiles = load_data("Student Profiles")
+                            if not df_profiles.empty:
+                                df_profiles.columns = df_profiles.columns.astype(str).str.strip()
+                                profile_row = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                                if not profile_row.empty:
+                                    p_row_idx = profile_row.index[0] + 2
+                                    p_username_col_idx = df_profiles.columns.get_loc("Username") + 1
+                                    update_cell("Student Profiles", p_row_idx, p_username_col_idx, new_username_clean)
+                            
+                            st.session_state.username = new_username_clean
+                            st.success(f"Username updated to '{new_username_clean}'. Use this to log in next time.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update username.")
     
     st.markdown('</div></div>', unsafe_allow_html=True)
 
