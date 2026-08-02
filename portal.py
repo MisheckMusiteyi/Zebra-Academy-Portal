@@ -42,15 +42,11 @@ SKY_BLUE = "#5C1A29"
 LIGHT_GREY = "#E0D5D8"
 
 # ============================================================
-# CSS - ZEBRA ACADEMY MAROON THEME (STREAMLIT OVERRIDES FIXED)
+# CSS - ZEBRA ACADEMY MAROON THEME
 # ============================================================
 def inject_css():
     st.markdown(f"""
     <style>
-        /* ============================================= */
-        /* FORCE LIGHT THEME - OVERRIDE EVERYTHING */
-        /* ============================================= */
-        
         :root, [data-theme="light"], [data-theme="dark"] {{
             --background-color: {OFF_WHITE} !important;
             --text-color: {MAROON_TEXT} !important;
@@ -73,9 +69,6 @@ def inject_css():
                          'Material Symbols Sharp', sans-serif !important;
         }}
         
-        /* ============================================= */
-        /* BUTTONS */
-        /* ============================================= */
         .stButton > button {{
             background-color: {MAROON} !important;
             color: {WHITE} !important;
@@ -93,9 +86,6 @@ def inject_css():
             font-family: 'Georgia', 'Times New Roman', serif !important;
         }}
         
-        /* ============================================= */
-        /* TABS */
-        /* ============================================= */
         .stTabs [aria-selected="true"] {{
             background-color: {MAROON} !important;
             color: {WHITE} !important;
@@ -111,9 +101,6 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* SIDEBAR                                        */
-        /* ============================================= */
         section[data-testid="stSidebar"][aria-expanded="true"] {{
             background-color: {MAROON} !important;
             min-width: 300px !important;
@@ -136,109 +123,15 @@ def inject_css():
         [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
             color: {WHITE} !important;
         }}
-        header[data-testid="stHeader"] {{
-            visibility: visible !important;
-            background: transparent !important;
-            box-shadow: none !important;
-        }}
-        header[data-testid="stHeader"] [data-testid="stToolbar"] > *:not([data-testid="stExpandSidebarButton"]) {{
-            visibility: hidden !important;
-        }}
-        [data-testid="stExpandSidebarButton"] {{
-            visibility: visible !important;
-            z-index: 999999 !important;
-            position: relative !important;
-        }}
-        [data-testid="stExpandSidebarButton"] * {{
-            font-size: 0 !important;
-            line-height: 0 !important;
-            color: transparent !important;
-            opacity: 0 !important;
-        }}
-        [data-testid="stExpandSidebarButton"]::after {{
-            content: "\\276F" !important;
-            position: absolute !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            font-family: Arial, Helvetica, sans-serif !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            color: {MAROON} !important;
-            line-height: 1 !important;
-            pointer-events: none !important;
-        }}
-        [data-testid="stSidebarCollapseButton"] {{
-            position: relative !important;
-        }}
-        [data-testid="stSidebarCollapseButton"] * {{
-            font-size: 0 !important;
-            line-height: 0 !important;
-            color: transparent !important;
-            opacity: 0 !important;
-        }}
-        [data-testid="stSidebarCollapseButton"]::after {{
-            content: "\\276E" !important;
-            position: absolute !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            font-family: Arial, Helvetica, sans-serif !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            color: {WHITE} !important;
-            line-height: 1 !important;
-            pointer-events: none !important;
+        [data-testid="collapsedControl"] {{
+            display: none;
         }}
         
-        /* ============================================= */
-        /* PASSWORD SHOW/HIDE ICON */
-        /* ============================================= */
-        /* Fixes the raw "visibility" ligature text that was showing on
-           top of every password field on the login screens. Streamlit's
-           show/hide-password button uses a Material Symbols icon font;
-           when that font can't load, the browser falls back to painting
-           the literal icon name as plain text over the input. We keep
-           the show/hide control (it's a real, useful feature) but hide
-           whatever the browser is actually rendering (font glyph,
-           fallback text, or svg) and draw one simple glyph of our own
-           on top, the same approach already used for the sidebar
-           buttons above. */
-        [data-testid="stTextInputRevealButton"],
-        [data-testid="stTextInput"] button[title*="password" i] {{
-            position: relative !important;
-        }}
-        [data-testid="stTextInputRevealButton"] *,
-        [data-testid="stTextInput"] button[title*="password" i] * {{
-            font-size: 0 !important;
-            line-height: 0 !important;
-            color: transparent !important;
-            opacity: 0 !important;
-        }}
-        [data-testid="stTextInputRevealButton"]::after,
-        [data-testid="stTextInput"] button[title*="password" i]::after {{
-            content: "\\1F441" !important;
-            position: absolute !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif !important;
-            font-size: 16px !important;
-            line-height: 1 !important;
-            pointer-events: none !important;
-        }}
-        
-        /* ============================================= */
-        /* HEADERS */
-        /* ============================================= */
         h1, h2, h3, h4, h5, h6 {{
             color: {MAROON} !important;
             font-family: 'Georgia', 'Times New Roman', serif !important;
         }}
         
-        /* ============================================= */
-        /* INPUT FIELDS */
-        /* ============================================= */
         input, textarea, select {{
             color: {MAROON_TEXT} !important;
             background-color: {WHITE} !important;
@@ -248,9 +141,6 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* DATA FRAMES & TABLES */
-        /* ============================================= */
         [data-testid="stDataFrame"] td, [data-testid="stTable"] td,
         .stDataFrame td, .dataframe td {{
             color: {MAROON_TEXT} !important;
@@ -261,9 +151,6 @@ def inject_css():
             background-color: {MAROON} !important;
         }}
         
-        /* ============================================= */
-        /* METRICS */
-        /* ============================================= */
         [data-testid="stMetricValue"] {{
             color: {MAROON} !important;
         }}
@@ -271,9 +158,6 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* ALERTS */
-        /* ============================================= */
         .stAlert, [data-testid="stAlert"] {{
             color: {MAROON_TEXT} !important;
         }}
@@ -281,38 +165,23 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* SELECTBOX DROPDOWN */
-        /* ============================================= */
         .stSelectbox div[data-baseweb="select"] > div {{
             color: {MAROON_TEXT} !important;
             background-color: {WHITE} !important;
         }}
         
-        /* ============================================= */
-        /* RADIO BUTTONS */
-        /* ============================================= */
         .stRadio label, .stRadio p, .stRadio span {{
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* CHECKBOX */
-        /* ============================================= */
         .stCheckbox label, .stCheckbox p, .stCheckbox span {{
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* EXPANDER */
-        /* ============================================= */
         .streamlit-expanderHeader {{
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* CUSTOM COMPONENTS */
-        /* ============================================= */
         .top-banner {{
             background-color: {MAROON};
             padding: 20px 40px;
@@ -465,18 +334,6 @@ def inject_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         
-        /* ============================================= */
-        /* PROFILE PHOTO UPLOAD DROPZONE */
-        /* ============================================= */
-        /* Streamlit's native uploader already renders its own prompt
-           text ("Drag and drop file here" + a "Browse files" button).
-           This file used to ALSO paint a custom ::before overlay
-           ("Click or drag image here") on top of that native text at
-           the same position, so the two labels rendered stacked on
-           each other and read as a garbled double "upload upload" -
-           exactly what the screenshot shows. Fix: don't add a second
-           label - just restyle Streamlit's own native prompt text to
-           match the theme. */
         [data-testid="stFileUploaderDropzoneInstructions"] div,
         [data-testid="stFileUploaderDropzoneInstructions"] span {{
             color: {MAROON} !important;
@@ -511,9 +368,6 @@ def inject_css():
             margin: 30px 0;
         }}
         
-        /* ============================================= */
-        /* MULTISELECT */
-        /* ============================================= */
         .stMultiSelect label {{
             color: {MAROON_TEXT} !important;
         }}
@@ -521,9 +375,6 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* ============================================= */
-        /* DATE INPUT */
-        /* ============================================= */
         .stDateInput label {{
             color: {MAROON_TEXT} !important;
         }}
@@ -556,7 +407,6 @@ def init_session():
 # ============================================================
 @st.cache_resource
 def connect_to_sheets():
-    """Connect to Google Sheets using Streamlit secrets or local credentials."""
     try:
         creds_dict = dict(st.secrets["connections"]["gsheet"])
         creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
@@ -569,12 +419,10 @@ def connect_to_sheets():
             "credentials.json",
             scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         )
-    
     client = gspread.authorize(credentials)
     return client
 
 def load_data(sheet_name):
-    """Load data from a specific worksheet with retry logic and column stripping."""
     client = connect_to_sheets()
     for attempt in range(3):
         try:
@@ -592,7 +440,6 @@ def load_data(sheet_name):
                 return pd.DataFrame()
 
 def write_data(sheet_name, data):
-    """Append a row to a worksheet."""
     client = connect_to_sheets()
     for attempt in range(3):
         try:
@@ -609,7 +456,6 @@ def write_data(sheet_name, data):
                 return False
 
 def update_cell(sheet_name, row, col, value):
-    """Update a specific cell."""
     client = connect_to_sheets()
     try:
         sheet = client.open(SHEET_NAME).worksheet(sheet_name)
@@ -623,7 +469,6 @@ def update_cell(sheet_name, row, col, value):
 # IMAGE HELPERS
 # ============================================================
 def image_to_base64(image_file, max_size=300, quality=60):
-    """Convert uploaded image to compressed Base64 string."""
     try:
         img = Image.open(image_file)
         img = img.convert("RGB")
@@ -642,7 +487,6 @@ def image_to_base64(image_file, max_size=300, quality=60):
         return None
 
 def get_initials(name):
-    """Get initials from a name."""
     parts = name.strip().split()
     if len(parts) >= 2:
         return (parts[0][0] + parts[-1][0]).upper()
@@ -651,12 +495,6 @@ def get_initials(name):
     return "ZA"
 
 def normalize_name(name):
-    """Normalize a name for matching: collapse internal whitespace, strip
-    ends, and lowercase. Used everywhere a student's logged-in name is
-    matched against a name typed into a different sheet (Performance,
-    Fee Payments, Attendance View, etc.), since those are entered by
-    different people at different times and easily drift apart in
-    capitalization or spacing even when they "look" the same."""
     return re.sub(r"\s+", " ", str(name).strip()).lower()
 
 # ============================================================
@@ -818,12 +656,11 @@ def student_dashboard_home(student_name, student_class):
         if not student_info.empty:
             s = student_info.iloc[0]
             details = [
-                ("Student Number", s.get("Student Number", "N/A")),
                 ("Date of Birth", s.get("Date of Birth", "N/A")),
                 ("Gender", s.get("Gender", "N/A")),
-                ("Address", s.get("Address", "N/A")),
                 ("Guardian", s.get("Guardian Name", "N/A")),
                 ("Guardian Phone", s.get("Guardian Phone", "N/A")),
+                ("Address", s.get("Address", "N/A")),
                 ("Enrollment Date", s.get("Enrollment Date", "N/A")),
             ]
             for label, value in details:
@@ -858,22 +695,10 @@ def student_performance(student_name, student_class):
         return
     
     df_perf.columns = df_perf.columns.astype(str).str.strip()
-    df_perf["Student Name"] = df_perf["Student Name"].astype(str).str.strip()
-    my_perf = df_perf[df_perf["Student Name"].apply(normalize_name) == normalize_name(student_name)]
+    my_perf = df_perf[df_perf["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
     
     if my_perf.empty:
         st.info("No results found for you yet.")
-        with st.expander("Not seeing an entry you know exists? Click here"):
-            st.markdown(f"**Your logged-in name:** `{student_name}`")
-            sheet_names = sorted(df_perf["Student Name"].unique().tolist())
-            st.markdown("**Names currently in the Performance sheet:**")
-            st.write(sheet_names)
-            st.caption(
-                "If your name above looks the same as one in the list but still "
-                "isn't matching, check for a typo, an extra space, or different "
-                "capitalization in whichever sheet (Students, Student Logins, or "
-                "Performance) it was typed into."
-            )
         return
     
     terms = my_perf["Term"].unique()
@@ -910,7 +735,8 @@ def student_fees(student_name, student_class):
     
     if not df_payments.empty:
         df_payments.columns = df_payments.columns.astype(str).str.strip()
-        my_payments = df_payments[df_payments["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
+        name_col = "Name of Student" if "Name of Student" in df_payments.columns else "Student Name"
+        my_payments = df_payments[df_payments[name_col].astype(str).apply(normalize_name) == normalize_name(student_name)]
         
         st.markdown('<div class="dash-card"><div class="dash-card-header">Payment History</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not my_payments.empty:
@@ -932,11 +758,6 @@ def student_attendance(student_name, student_class):
     
     st.markdown('<div class="dash-card"><div class="dash-card-header">Last 5 Working Days</div><div class="dash-card-body">', unsafe_allow_html=True)
     if not my_att.empty:
-        # Laid out as a vertical column - one row per day - instead of one
-        # wide row with a column per date, so it reads top-to-bottom like
-        # a simple log rather than requiring horizontal scrolling. Status
-        # is always the plain word "Present"/"Absent", colored via the
-        # existing .positive/.negative classes - never an icon or arrow.
         row = my_att.iloc[0]
         date_cols = [c for c in my_att.columns if c != "Student Name"]
         
@@ -947,7 +768,7 @@ def student_attendance(student_name, student_class):
         html += '</tr>'
         for i, col in enumerate(date_cols):
             val = str(row[col]).strip()
-            status_class = "positive" if val.lower() == "present" else ("negative" if val.lower() == "absent" else "")
+            status_class = "positive" if val == "Present" else ("negative" if val == "Absent" else "")
             bg = CARD_ALT_ROW if i % 2 == 0 else WHITE
             html += f'<tr style="background-color:{bg};">'
             html += f'<td style="padding:12px;">{col}</td>'
@@ -989,68 +810,13 @@ def student_profile_settings():
                     st.rerun()
     
     st.markdown('</div></div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="dash-card"><div class="dash-card-header">Change Username</div><div class="dash-card-body">', unsafe_allow_html=True)
-    
-    st.markdown(f"**Current username:** `{st.session_state.username}`")
-    new_username = st.text_input("New Username", key="new_username_input")
-    confirm_password = st.text_input("Confirm Your Password", type="password", key="username_change_pass")
-    
-    if st.button("Update Username", use_container_width=True):
-        new_username_clean = new_username.strip()
-        if not new_username_clean:
-            st.error("Please enter a new username.")
-        elif not confirm_password:
-            st.error("Please enter your password to confirm this change.")
-        else:
-            df_logins = load_data("Student Logins")
-            if df_logins.empty:
-                st.error("Unable to load login data.")
-            else:
-                df_logins.columns = df_logins.columns.astype(str).str.strip()
-                
-                current_row = df_logins[df_logins["Username"].astype(str).str.strip() == st.session_state.username.strip()]
-                if current_row.empty:
-                    st.error("Could not find your account.")
-                elif str(current_row.iloc[0]["Password"]).strip() != confirm_password.strip():
-                    st.error("Incorrect password.")
-                elif new_username_clean.lower() == st.session_state.username.strip().lower():
-                    st.warning("That's already your current username.")
-                else:
-                    taken = df_logins[df_logins["Username"].astype(str).str.strip().str.lower() == new_username_clean.lower()]
-                    if not taken.empty:
-                        st.error("That username is already taken. Please choose another.")
-                    else:
-                        row_idx = current_row.index[0] + 2
-                        success = update_cell("Student Logins", row_idx, 2, new_username_clean)
-                        
-                        # Keep the Student Profiles sheet (which stores the
-                        # profile photo keyed by Username) pointing at the
-                        # same student after the rename.
-                        df_profiles = load_data("Student Profiles")
-                        if not df_profiles.empty:
-                            df_profiles.columns = df_profiles.columns.astype(str).str.strip()
-                            profile_row = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
-                            if not profile_row.empty:
-                                p_idx = profile_row.index[0] + 2
-                                update_cell("Student Profiles", p_idx, 1, new_username_clean)
-                        
-                        if success:
-                            st.session_state.username = new_username_clean
-                            st.success(f"Username updated to '{new_username_clean}'!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to update username.")
-    
-    st.markdown('</div></div>', unsafe_allow_html=True)
 
 # ============================================================
 # ADMIN DASHBOARD - HELPERS
 # ============================================================
 def get_available_terms():
-    """Get unique terms from all financial and performance sheets."""
     terms = set()
-    for sheet_name in ["Fee Payments", "Expenses", "Other Income", "Performance"]:
+    for sheet_name in ["Fee Payments", "Expenses", "Other Income", "Performance", "Salaries"]:
         df = load_data(sheet_name)
         if not df.empty and "Term" in df.columns:
             df.columns = df.columns.astype(str).str.strip()
@@ -1059,14 +825,12 @@ def get_available_terms():
     return sorted(list(terms), reverse=True)
 
 def filter_by_term(df, term):
-    """Filter dataframe by term if term column exists."""
     if df.empty or term == "All Time" or "Term" not in df.columns:
         return df
     df.columns = df.columns.astype(str).str.strip()
     return df[df["Term"].astype(str).str.strip() == term.strip()]
 
 def safe_sum(df, column_name):
-    """Safely sum a numeric column."""
     if df.empty or column_name not in df.columns:
         return 0.0
     return pd.to_numeric(df[column_name], errors='coerce').sum()
@@ -1075,7 +839,6 @@ def safe_sum(df, column_name):
 # AUTO-GRADING SYSTEM
 # ============================================================
 def calculate_grade(mark):
-    """Auto-calculate grade based on mark percentage."""
     if mark >= 75:
         return "A"
     elif mark >= 60:
@@ -1090,7 +853,6 @@ def calculate_grade(mark):
         return "F"
 
 def grade_color(grade):
-    """Return color for grade display."""
     colors = {
         "A": GREEN,
         "B": "#8BC34A",
@@ -1190,7 +952,6 @@ def admin_overview():
     all_time_other = safe_sum(df_other_income_all, "Amount")
     all_time_expenses = safe_sum(df_expenses_all, "Amount")
     all_time_income = all_time_fees + all_time_other
-    all_time_profit = all_time_income - all_time_expenses
     
     df_payments_term = filter_by_term(df_payments_all.copy(), selected_term)
     df_expenses_term = filter_by_term(df_expenses_all.copy(), selected_term)
@@ -1216,147 +977,75 @@ def admin_overview():
         if "Class" in df_students.columns:
             class_count = str(df_students["Class"].nunique())
     
-    enrollment_html = f"""
+    badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
+    profit_color = GREEN if term_profit >= 0 else RED
+    
+    # Enrollment Section
+    st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div>
         <div class="dash-card-body">
             <div class="metric-grid metric-grid-4">
-                <div class="metric-card">
-                    <div class="metric-value">{total_students}</div>
-                    <div class="metric-label">Total Students Enrolled</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">{class_count}</div>
-                    <div class="metric-label">Classes</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${all_time_income:,.0f}</div>
-                    <div class="metric-label">Lifetime Income</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${all_time_expenses:,.0f}</div>
-                    <div class="metric-label">Lifetime Expenses</div>
-                </div>
+                <div class="metric-card"><div class="metric-value">{total_students}</div><div class="metric-label">Total Students</div></div>
+                <div class="metric-card"><div class="metric-value">{class_count}</div><div class="metric-label">Classes</div></div>
+                <div class="metric-card"><div class="metric-value">${all_time_income:,.0f}</div><div class="metric-label">Lifetime Income</div></div>
+                <div class="metric-card"><div class="metric-value">${all_time_expenses:,.0f}</div><div class="metric-label">Lifetime Expenses</div></div>
             </div>
         </div>
     </div>
-    """
-    st.markdown(enrollment_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
-    badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
-    profit_color = GREEN if term_profit >= 0 else RED
-    financials_html = f"""
+    # Financials Section
+    st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Financials{badge_html}</div>
         <div class="dash-card-body">
             <h4>Income</h4>
             <div class="metric-grid metric-grid-3">
-                <div class="metric-card">
-                    <div class="metric-value">${term_fees:,.0f}</div>
-                    <div class="metric-label">Fees Income</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${term_other:,.0f}</div>
-                    <div class="metric-label">Other Income</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" style="color: {MAROON};">${term_income:,.0f}</div>
-                    <div class="metric-label">Total Income</div>
-                </div>
+                <div class="metric-card"><div class="metric-value">${term_fees:,.0f}</div><div class="metric-label">Fees Income</div></div>
+                <div class="metric-card"><div class="metric-value">${term_other:,.0f}</div><div class="metric-label">Other Income</div></div>
+                <div class="metric-card"><div class="metric-value" style="color:{MAROON};">${term_income:,.0f}</div><div class="metric-label">Total Income</div></div>
             </div>
             <h4>Expenses</h4>
             <div class="metric-grid metric-grid-2">
-                <div class="metric-card">
-                    <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
-                    <div class="metric-label">Total Expenses</div>
-                </div>
+                <div class="metric-card"><div class="metric-value" style="color:{RED};">${term_expenses:,.0f}</div><div class="metric-label">Total Expenses</div></div>
             </div>
             <h4>Profit</h4>
             <div class="metric-grid metric-grid-3">
-                <div class="metric-card">
-                    <div class="metric-value">${term_income:,.0f}</div>
-                    <div class="metric-label">Total Income</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" style="color: {RED};">${term_expenses:,.0f}</div>
-                    <div class="metric-label">Total Expenses</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" style="color: {profit_color};">${term_profit:,.0f}</div>
-                    <div class="metric-label">Gross Profit</div>
-                </div>
+                <div class="metric-card"><div class="metric-value">${term_income:,.0f}</div><div class="metric-label">Total Income</div></div>
+                <div class="metric-card"><div class="metric-value" style="color:{RED};">${term_expenses:,.0f}</div><div class="metric-label">Total Expenses</div></div>
+                <div class="metric-card"><div class="metric-value" style="color:{profit_color};">${term_profit:,.0f}</div><div class="metric-label">Gross Profit</div></div>
             </div>
         </div>
     </div>
-    """
-    st.markdown(financials_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
-    distribution_html = f"""
+    # Profit Distribution Section
+    st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Profit Distribution{badge_html}</div>
         <div class="dash-card-body">
             <p><strong>Gross Profit to Distribute:</strong> ${term_profit:,.0f}</p>
             <hr class="section-divider">
             <div class="metric-grid metric-grid-6">
-                <div class="metric-card">
-                    <div class="metric-value">${investments:,.0f}</div>
-                    <div class="metric-label">Investments</div>
-                    <div class="metric-label">10%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${salaries_pool:,.0f}</div>
-                    <div class="metric-label">Salaries</div>
-                    <div class="metric-label">20%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${tithe:,.0f}</div>
-                    <div class="metric-label">Tithe</div>
-                    <div class="metric-label">10%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${alter:,.0f}</div>
-                    <div class="metric-label">Alter</div>
-                    <div class="metric-label">5%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${operations:,.0f}</div>
-                    <div class="metric-label">Operations</div>
-                    <div class="metric-label">10%</div>
-                </div>
-                <div class="metric-card" style="border: 2px solid {GREEN};">
-                    <div class="metric-value" style="color: {GREEN};">${net_profit:,.0f}</div>
-                    <div class="metric-label">Retained Profit</div>
-                    <div class="metric-label">45%</div>
-                </div>
+                <div class="metric-card"><div class="metric-value">${investments:,.0f}</div><div class="metric-label">Investments</div><div class="metric-label">10%</div></div>
+                <div class="metric-card"><div class="metric-value">${salaries_pool:,.0f}</div><div class="metric-label">Salaries</div><div class="metric-label">20%</div></div>
+                <div class="metric-card"><div class="metric-value">${tithe:,.0f}</div><div class="metric-label">Tithe</div><div class="metric-label">10%</div></div>
+                <div class="metric-card"><div class="metric-value">${alter:,.0f}</div><div class="metric-label">Alter</div><div class="metric-label">5%</div></div>
+                <div class="metric-card"><div class="metric-value">${operations:,.0f}</div><div class="metric-label">Operations</div><div class="metric-label">10%</div></div>
+                <div class="metric-card" style="border:2px solid {GREEN};"><div class="metric-value" style="color:{GREEN};">${net_profit:,.0f}</div><div class="metric-label">Retained Profit</div><div class="metric-label">45%</div></div>
             </div>
             <hr class="section-divider">
-            <h4>Salary Split (20% divided equally among 4 people = 5% each)</h4>
+            <h4>Salary Split (20% / 4 = 5% each)</h4>
             <div class="metric-grid metric-grid-4">
-                <div class="metric-card">
-                    <div class="metric-value">${per_person:,.0f}</div>
-                    <div class="metric-label">Mr Kawonde</div>
-                    <div class="metric-label">5%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${per_person:,.0f}</div>
-                    <div class="metric-label">Mrs Kawonde</div>
-                    <div class="metric-label">5%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${per_person:,.0f}</div>
-                    <div class="metric-label">Nextvantage Analytics</div>
-                    <div class="metric-label">5%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${per_person:,.0f}</div>
-                    <div class="metric-label">Miss Mutasvu</div>
-                    <div class="metric-label">5%</div>
-                </div>
+                <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mr Kawonde</div><div class="metric-label">5%</div></div>
+                <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mrs Kawonde</div><div class="metric-label">5%</div></div>
+                <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Nextvantage Analytics</div><div class="metric-label">5%</div></div>
+                <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Miss Mutasvu</div><div class="metric-label">5%</div></div>
             </div>
         </div>
     </div>
-    """
-    st.markdown(distribution_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # STUDENT GRADES PAGE
@@ -1371,11 +1060,7 @@ def admin_student_grades():
     
     col_filter, col_space = st.columns([1, 3])
     with col_filter:
-        selected_term = st.selectbox(
-            "Filter by Term",
-            term_options,
-            key="grades_term_filter"
-        )
+        selected_term = st.selectbox("Filter by Term", term_options, key="grades_term_filter")
     
     df_perf = filter_by_term(df_performance_all.copy(), selected_term)
     
@@ -1390,20 +1075,17 @@ def admin_student_grades():
             all_students = ["All"] + sorted(df_perf["Student Name"].dropna().unique().tolist()) if "Student Name" in df_perf.columns else ["All"]
             filter_student = st.selectbox("Student", all_students, key="grades_student")
         with col2:
-            all_classes = ["All"] + sorted(df_perf["Class"].dropna().unique().tolist()) if "Class" in df_perf.columns else ["All"]
-            filter_class = st.selectbox("Class", all_classes, key="grades_class")
-        with col3:
             all_subjects = ["All"] + sorted(df_perf["Subject"].dropna().unique().tolist()) if "Subject" in df_perf.columns else ["All"]
             filter_subject = st.selectbox("Subject", all_subjects, key="grades_subject")
-        with col4:
+        with col3:
             all_grade_vals = ["All"] + sorted(df_perf["Grade"].dropna().unique().tolist()) if "Grade" in df_perf.columns else ["All"]
             filter_grade = st.selectbox("Grade", all_grade_vals, key="grades_grade")
+        with col4:
+            st.write("")
         
         filtered = df_perf.copy()
         if filter_student != "All" and "Student Name" in filtered.columns:
             filtered = filtered[filtered["Student Name"].astype(str).str.strip() == filter_student.strip()]
-        if filter_class != "All" and "Class" in filtered.columns:
-            filtered = filtered[filtered["Class"].astype(str).str.strip() == filter_class.strip()]
         if filter_subject != "All" and "Subject" in filtered.columns:
             filtered = filtered[filtered["Subject"].astype(str).str.strip() == filter_subject.strip()]
         if filter_grade != "All" and "Grade" in filtered.columns:
@@ -1455,6 +1137,7 @@ def admin_student_grades():
     
     st.markdown('</div></div>', unsafe_allow_html=True)
     
+    # Grading Scale
     st.markdown('<div class="dash-card"><div class="dash-card-header">Grading Scale</div><div class="dash-card-body">', unsafe_allow_html=True)
     
     scale_data = [
@@ -1478,6 +1161,7 @@ def admin_student_grades():
 # ============================================================
 # ADMIN DATA ENTRY PAGES
 # ============================================================
+
 def admin_register_student():
     st.markdown("## Register New Student")
     
@@ -1489,12 +1173,12 @@ def admin_register_student():
         student_name = st.text_input("Student Full Name*")
         dob = st.date_input("Date of Birth*", min_value=date(2000,1,1), max_value=date.today())
         gender = st.selectbox("Gender*", ["Male", "Female", "Other"])
-        student_class = st.text_input("Class*", placeholder="e.g., Grade 1, Form 2")
+        guardian_name = st.text_input("Guardian Name*")
     
     with col2:
-        address = st.text_area("Address")
-        guardian_name = st.text_input("Guardian Name*")
+        student_class = st.text_input("Class*", placeholder="e.g., Grade 1, Form 2")
         guardian_phone = st.text_input("Guardian Phone*")
+        address = st.text_area("Address")
         enrollment_date = st.date_input("Enrollment Date*", value=date.today())
     
     st.markdown("---")
@@ -1506,26 +1190,35 @@ def admin_register_student():
         if not student_name or not student_class or not guardian_name:
             st.error("Please fill in all required fields (*)")
         else:
-            student_number = f"ZA-{datetime.now().year}-{random.randint(1000,9999)}"
-            
             if not username:
                 username = student_name.lower().replace(" ", ".") + str(random.randint(10,99))
-            
             if not password:
                 password = "student123"
             
+            # Students: Timestamp | Student Name | Class | Date of Birth | Gender | Guardian Name | Guardian Phone | Address | Enrollment Date
             success1 = write_data("Students", [
-                student_name, student_class, str(dob), gender,
-                address, guardian_name, guardian_phone,
-                student_number, str(enrollment_date)
+                str(datetime.now()),
+                student_name,
+                student_class,
+                str(dob),
+                gender,
+                guardian_name,
+                guardian_phone,
+                address,
+                str(enrollment_date)
             ])
             
+            # Student Logins: Student Name | Username | Password | Class | Status
             success2 = write_data("Student Logins", [
-                student_name, username, password, student_class, "Active"
+                student_name,
+                username,
+                password,
+                student_class,
+                "Active"
             ])
             
             if success1 and success2:
-                st.success(f"Student registered successfully!\n\nUsername: {username}\nPassword: {password}\nStudent Number: {student_number}")
+                st.success(f"Student registered successfully!\n\nUsername: {username}\nPassword: {password}")
                 st.balloons()
             else:
                 st.error("There was an error saving to the database.")
@@ -1547,22 +1240,16 @@ def admin_record_fee():
     
     with col1:
         student_name = st.selectbox("Student Name*", student_list)
-        amount = st.number_input("Amount Paid*", min_value=0.0, step=10.0)
-        payment_method = st.selectbox("Payment Method", ["Cash", "EFT", "Mobile Money", "Cheque", "Other"])
-    
-    with col2:
         payment_date = st.date_input("Payment Date", value=date.today())
         term = st.selectbox("Term", [
             "Term 1 2026", "Term 2 2026", "Term 3 2026",
             "Term 1 2027", "Term 2 2027", "Term 3 2027"
         ])
-        term_month = st.text_input("Term Month", placeholder="e.g., Term 1 January 2026")
     
-    student_class = ""
-    if student_name != "Select student..." and not df_students.empty:
-        match = df_students[df_students["Student Name"].astype(str).str.strip() == student_name.strip()]
-        if not match.empty:
-            student_class = str(match.iloc[0]["Class"])
+    with col2:
+        amount = st.number_input("Amount Paid*", min_value=0.0, step=10.0)
+        payment_method = st.selectbox("Payment Method", ["Cash", "EFT", "Mobile Money", "Cheque", "Other"])
+        term_month = st.text_input("Term Month", placeholder="e.g., Term 1 January 2026")
     
     if st.button("Record Payment", use_container_width=True):
         if student_name == "Select student...":
@@ -1570,9 +1257,15 @@ def admin_record_fee():
         elif amount <= 0:
             st.error("Please enter an amount.")
         else:
+            # Fee Payments: Timestamp | Name of Student | Date | Term | Amount Paid | Payment Method | Term month
             success = write_data("Fee Payments", [
-                str(payment_date), student_name, student_class,
-                amount, payment_method, term, term_month
+                str(datetime.now()),
+                student_name,
+                str(payment_date),
+                term,
+                amount,
+                payment_method,
+                term_month
             ])
             if success:
                 st.success(f"Payment of ${amount:,.2f} recorded for {student_name}!")
@@ -1614,11 +1307,11 @@ def admin_enter_performance():
         """, unsafe_allow_html=True)
         comment = st.text_area("Comment", placeholder="Teacher's comment...")
     
-    student_class = ""
+    student_dob = ""
     if student_name != "Select student..." and not df_students.empty:
         match = df_students[df_students["Student Name"].astype(str).str.strip() == student_name.strip()]
         if not match.empty:
-            student_class = str(match.iloc[0]["Class"])
+            student_dob = str(match.iloc[0].get("Date of Birth", ""))
     
     if st.button("Save Result", use_container_width=True):
         if student_name == "Select student...":
@@ -1626,8 +1319,15 @@ def admin_enter_performance():
         elif not subject:
             st.error("Please enter a subject.")
         else:
+            # Performance: Student Name | Date of Birth | Term | Subject | Mark | Grade | Comment
             success = write_data("Performance", [
-                student_name, student_class, term, subject, mark, auto_grade, comment
+                student_name,
+                student_dob,
+                term,
+                subject,
+                mark,
+                auto_grade,
+                comment
             ])
             if success:
                 st.success(f"Result saved for {student_name} - {subject}: {mark}% ({auto_grade})")
@@ -1679,7 +1379,7 @@ def admin_mark_attendance():
     with tab2:
         st.markdown('<div class="dash-card"><div class="dash-card-header">Record Absent Students</div><div class="dash-card-body">', unsafe_allow_html=True)
         
-        st.info("Use this to record which students were absent on a specific date (comma-separated).")
+        st.info("Use this to record which students were absent on a specific date.")
         
         absence_date = st.date_input("Date", value=date.today(), key="absence_date")
         
@@ -1689,8 +1389,11 @@ def admin_mark_attendance():
             
             if st.button("Record Absences"):
                 if absent_students:
+                    # Attendance: Timestamp | Date | Absent Student(s)
                     write_data("Attendance", [
-                        str(datetime.now()), str(absence_date), absent_str
+                        str(datetime.now()),
+                        str(absence_date),
+                        absent_str
                     ])
                     st.success(f"Recorded {len(absent_students)} absent student(s) on {absence_date}")
                 else:
@@ -1718,15 +1421,22 @@ def admin_record_expense():
     
     with col2:
         term_month = st.text_input("Term Month", placeholder="e.g., Term 1 January 2026", key="exp_month")
-        description = st.text_area("Description")
+        description = st.text_area("Expense Description")
         amount = st.number_input("Amount*", min_value=0.0, step=10.0, key="exp_amount")
     
     if st.button("Record Expense", use_container_width=True):
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
+            # Expenses: Timestamp | Date | Expense Description | Amount | Term | Term Month | Category
             success = write_data("Expenses", [
-                str(expense_date), term, term_month, category, description, amount
+                str(datetime.now()),
+                str(expense_date),
+                description,
+                amount,
+                term,
+                term_month,
+                category
             ])
             if success:
                 st.success(f"Expense of ${amount:,.2f} recorded!")
@@ -1744,22 +1454,21 @@ def admin_record_other_income():
     
     with col1:
         income_date = st.date_input("Date", value=date.today(), key="inc_date")
-        term = st.selectbox("Term", [
-            "Term 1 2026", "Term 2 2026", "Term 3 2026",
-            "Term 1 2027", "Term 2 2027", "Term 3 2027"
-        ], key="inc_term")
     
     with col2:
-        term_month = st.text_input("Term Month", placeholder="e.g., Term 1 January 2026", key="inc_month")
-        description = st.text_area("Description", key="inc_desc")
+        description = st.text_area("Income Description", key="inc_desc")
         amount = st.number_input("Amount*", min_value=0.0, step=10.0, key="inc_amount")
     
     if st.button("Record Income", use_container_width=True):
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
+            # Other Income: Timestamp | Date | Income Description | Amount
             success = write_data("Other Income", [
-                str(income_date), term, term_month, description, amount
+                str(datetime.now()),
+                str(income_date),
+                description,
+                amount
             ])
             if success:
                 st.success(f"Income of ${amount:,.2f} recorded!")
@@ -1799,8 +1508,14 @@ def admin_salary_payments():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
+            # Salaries: Date | Term | Term Month | Recipient | Percentage | Amount
             success = write_data("Salaries", [
-                str(salary_date), term, term_month, recipient, "5%", amount
+                str(salary_date),
+                term,
+                term_month,
+                recipient,
+                "5%",
+                amount
             ])
             if success:
                 st.success(f"Salary of ${amount:,.2f} paid to {recipient}!")
