@@ -112,12 +112,25 @@ def inject_css():
         }}
         
         /* ============================================= */
-        /* SIDEBAR */
+        /* SIDEBAR - FORCED VISIBLE, ROBUST TO STREAMLIT */
+        /* RESPONSIVE AUTO-COLLAPSE ON NARROW VIEWPORTS   */
         /* ============================================= */
-        [data-testid="stSidebar"] {{
+        section[data-testid="stSidebar"] {{
             background-color: {MAROON} !important;
             min-width: 300px !important;
             max-width: 300px !important;
+            width: 300px !important;
+            transform: none !important;
+            visibility: visible !important;
+            position: relative !important;
+        }}
+        section[data-testid="stSidebar"][aria-expanded="false"] {{
+            min-width: 300px !important;
+            max-width: 300px !important;
+            width: 300px !important;
+            margin-left: 0px !important;
+            transform: none !important;
+            visibility: visible !important;
         }}
         [data-testid="stSidebar"] * {{
             color: {WHITE} !important;
@@ -135,8 +148,17 @@ def inject_css():
         [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
             color: {WHITE} !important;
         }}
+        /* Keep the collapse/expand arrow visible and legible instead of
+           hiding it - hiding it is what strands users when Streamlit
+           auto-collapses the sidebar on narrow/embedded viewports. */
         [data-testid="collapsedControl"] {{
-            display: none;
+            display: flex !important;
+            visibility: visible !important;
+            color: {MAROON} !important;
+            z-index: 999999 !important;
+        }}
+        [data-testid="collapsedControl"] svg {{
+            fill: {MAROON} !important;
         }}
         
         /* ============================================= */
