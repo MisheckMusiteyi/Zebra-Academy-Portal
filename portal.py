@@ -114,14 +114,6 @@ def inject_css():
         /* ============================================= */
         /* SIDEBAR                                        */
         /* ============================================= */
-        /* Only style colour/width for the EXPANDED sidebar. We
-           deliberately do NOT touch transform/visibility/width on the
-           collapsed (aria-expanded="false") state, and we do NOT force
-           transform:none - Streamlit uses a translateX() transform to
-           slide the sidebar off-screen when collapsed, and pinning
-           transform:none here (as an earlier version of this CSS did)
-           silently cancelled that animation, so the collapse/expand
-           arrow toggled the internal state but nothing ever moved. */
         section[data-testid="stSidebar"][aria-expanded="true"] {{
             background-color: {MAROON} !important;
             min-width: 300px !important;
@@ -144,48 +136,6 @@ def inject_css():
         [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
             color: {WHITE} !important;
         }}
-        /* Keep the collapse/expand control visible and legible instead of
-           hiding it - hiding it is what strands users when Streamlit
-           auto-collapses the sidebar on narrow/embedded viewports.
-           
-           IMPORTANT (verified against the installed Streamlit package,
-           v1.60): the testid this file used to target -
-           [data-testid="collapsedControl"] - does not exist in current
-           Streamlit. It was split into two different elements:
-           
-             - data-testid="stExpandSidebarButton" -> the button shown
-               when the sidebar IS collapsed, used to reopen it. This
-               button is rendered INSIDE Streamlit's <header> toolbar
-               (data-testid="stHeader" / class "stAppHeader"), which is
-               exactly the element this file hides below with
-               `header {{visibility: hidden;}}`. Because the old selector
-               no longer matches anything, that inherited
-               visibility:hidden was never being overridden, so the
-               reopen button was present in the DOM but fully invisible
-               and unclickable - which is exactly what the blank corner
-               in the screenshot shows.
-           
-             - data-testid="stSidebarCollapseButton" -> the button
-               INSIDE the open sidebar used to close it. It lives inside
-               [data-testid="stSidebar"], not the header, so it was
-               already visible; this file's old CSS just never drew a
-               custom arrow glyph on top of it because it (also
-               incorrectly) tried to match it under the old
-               "collapsedControl" family of selectors.
-           
-           Both are still real <button> elements using an inline SVG
-           icon (Streamlit no longer relies on a ligature icon font for
-           this control), so there's no "font fails to load, shows raw
-           text" risk here anymore - but we still draw our own arrow
-           glyph on top for a crisper, on-brand look, the same way the
-           rest of this file already treats icon buttons. */
-        
-        /* Reopen button - rendered inside <header>, which is globally
-           hidden via `header {{visibility: hidden;}}` further down.
-           visibility is inherited, so we must explicitly re-declare
-           visibility: visible on this element (and its ancestor
-           wrappers) to pull it back out of that inherited hidden state.
-           Sits on the light background, so button + arrow are maroon. */
         header[data-testid="stHeader"] {{
             visibility: visible !important;
             background: transparent !important;
@@ -199,13 +149,6 @@ def inject_css():
             z-index: 999999 !important;
             position: relative !important;
         }}
-        /* The icon inside this button can render either as an <svg> or,
-           if the Material Symbols font fails to load, as literal
-           ligature text like "keyboard_double_arrow_right". Covering
-           only svg (as an earlier version of this rule did) leaves that
-           fallback text fully visible. Collapsing every descendant's
-           font-size to 0 and making it transparent hides either case,
-           regardless of which one actually renders. */
         [data-testid="stExpandSidebarButton"] * {{
             font-size: 0 !important;
             line-height: 0 !important;
@@ -225,9 +168,6 @@ def inject_css():
             line-height: 1 !important;
             pointer-events: none !important;
         }}
-        
-        /* Collapse button - lives inside the open sidebar itself, so it
-           sits on the maroon sidebar background and needs a white arrow. */
         [data-testid="stSidebarCollapseButton"] {{
             position: relative !important;
         }}
@@ -247,6 +187,43 @@ def inject_css():
             font-size: 18px !important;
             font-weight: bold !important;
             color: {WHITE} !important;
+            line-height: 1 !important;
+            pointer-events: none !important;
+        }}
+        
+        /* ============================================= */
+        /* PASSWORD SHOW/HIDE ICON */
+        /* ============================================= */
+        /* Fixes the raw "visibility" ligature text that was showing on
+           top of every password field on the login screens. Streamlit's
+           show/hide-password button uses a Material Symbols icon font;
+           when that font can't load, the browser falls back to painting
+           the literal icon name as plain text over the input. We keep
+           the show/hide control (it's a real, useful feature) but hide
+           whatever the browser is actually rendering (font glyph,
+           fallback text, or svg) and draw one simple glyph of our own
+           on top, the same approach already used for the sidebar
+           buttons above. */
+        [data-testid="stTextInputRevealButton"],
+        [data-testid="stTextInput"] button[title*="password" i] {{
+            position: relative !important;
+        }}
+        [data-testid="stTextInputRevealButton"] *,
+        [data-testid="stTextInput"] button[title*="password" i] * {{
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
+            opacity: 0 !important;
+        }}
+        [data-testid="stTextInputRevealButton"]::after,
+        [data-testid="stTextInput"] button[title*="password" i]::after {{
+            content: "\\1F441" !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif !important;
+            font-size: 16px !important;
             line-height: 1 !important;
             pointer-events: none !important;
         }}
@@ -423,9 +400,6 @@ def inject_css():
             letter-spacing: 1px;
         }}
         
-        /* Grid layouts for metric-card groups that are built as a single
-           HTML block (see admin_overview) instead of st.columns(), so
-           they render as real children of the dash-card that wraps them. */
         .metric-grid {{
             display: grid;
             gap: 16px;
@@ -491,18 +465,22 @@ def inject_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         
-        [data-testid="stFileUploadDropzone"] {{
-            position: relative;
-        }}
-        [data-testid="stFileUploadDropzone"]::before {{
-            content: "Click or drag image here";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: {MAROON};
-            font-family: 'Georgia', serif;
-            z-index: 1;
+        /* ============================================= */
+        /* PROFILE PHOTO UPLOAD DROPZONE */
+        /* ============================================= */
+        /* Streamlit's native uploader already renders its own prompt
+           text ("Drag and drop file here" + a "Browse files" button).
+           This file used to ALSO paint a custom ::before overlay
+           ("Click or drag image here") on top of that native text at
+           the same position, so the two labels rendered stacked on
+           each other and read as a garbled double "upload upload" -
+           exactly what the screenshot shows. Fix: don't add a second
+           label - just restyle Streamlit's own native prompt text to
+           match the theme. */
+        [data-testid="stFileUploaderDropzoneInstructions"] div,
+        [data-testid="stFileUploaderDropzoneInstructions"] span {{
+            color: {MAROON} !important;
+            font-family: 'Georgia', 'Times New Roman', serif !important;
         }}
         [data-testid="stFileUploadDropzone"] small {{
             display: none !important;
@@ -885,12 +863,6 @@ def student_performance(student_name, student_class):
     
     if my_perf.empty:
         st.info("No results found for you yet.")
-        # Diagnostic: this only shows up when nothing matched, so it's
-        # invisible to students in the normal case. It exists because
-        # "no results" here almost always means the name in the
-        # Performance sheet doesn't exactly match the name on this
-        # student's login row - different spacing, capitalization, or a
-        # typo - rather than the record genuinely being missing.
         with st.expander("Not seeing an entry you know exists? Click here"):
             st.markdown(f"**Your logged-in name:** `{student_name}`")
             sheet_names = sorted(df_perf["Student Name"].unique().tolist())
@@ -960,23 +932,28 @@ def student_attendance(student_name, student_class):
     
     st.markdown('<div class="dash-card"><div class="dash-card-header">Last 5 Working Days</div><div class="dash-card-body">', unsafe_allow_html=True)
     if not my_att.empty:
-        def style_attendance(val):
-            if val == "Present":
-                return f'<span style="color: {GREEN}; font-weight: bold;">Present</span>'
-            elif val == "Absent":
-                return f'<span style="color: {RED}; font-weight: bold;">Absent</span>'
-            return val
-        
+        # Laid out as a vertical column - one row per day - instead of one
+        # wide row with a column per date, so it reads top-to-bottom like
+        # a simple log rather than requiring horizontal scrolling. Status
+        # is always the plain word "Present"/"Absent", colored via the
+        # existing .positive/.negative classes - never an icon or arrow.
         row = my_att.iloc[0]
+        date_cols = [c for c in my_att.columns if c != "Student Name"]
+        
         html = '<table style="width:100%; border-collapse:collapse;">'
-        html += '<tr style="background-color:' + MAROON + '; color:' + WHITE + ';">'
-        for col in my_att.columns:
-            html += f'<th style="padding:12px;">{col}</th>'
-        html += '</tr><tr>'
-        for col in my_att.columns:
-            val = row[col]
-            html += f'<td style="padding:12px; text-align:center;">{style_attendance(str(val))}</td>'
-        html += '</tr></table>'
+        html += f'<tr style="background-color:{MAROON}; color:{WHITE};">'
+        html += '<th style="padding:12px; text-align:left;">Day</th>'
+        html += '<th style="padding:12px; text-align:left;">Status</th>'
+        html += '</tr>'
+        for i, col in enumerate(date_cols):
+            val = str(row[col]).strip()
+            status_class = "positive" if val.lower() == "present" else ("negative" if val.lower() == "absent" else "")
+            bg = CARD_ALT_ROW if i % 2 == 0 else WHITE
+            html += f'<tr style="background-color:{bg};">'
+            html += f'<td style="padding:12px;">{col}</td>'
+            html += f'<td style="padding:12px;"><span class="{status_class}">{val}</span></td>'
+            html += '</tr>'
+        html += '</table>'
         st.markdown(html, unsafe_allow_html=True)
     else:
         st.info("No attendance data for you.")
@@ -1010,6 +987,60 @@ def student_profile_settings():
                         ])
                     st.success("Profile photo updated! Refresh to see changes.")
                     st.rerun()
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Change Username</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    st.markdown(f"**Current username:** `{st.session_state.username}`")
+    new_username = st.text_input("New Username", key="new_username_input")
+    confirm_password = st.text_input("Confirm Your Password", type="password", key="username_change_pass")
+    
+    if st.button("Update Username", use_container_width=True):
+        new_username_clean = new_username.strip()
+        if not new_username_clean:
+            st.error("Please enter a new username.")
+        elif not confirm_password:
+            st.error("Please enter your password to confirm this change.")
+        else:
+            df_logins = load_data("Student Logins")
+            if df_logins.empty:
+                st.error("Unable to load login data.")
+            else:
+                df_logins.columns = df_logins.columns.astype(str).str.strip()
+                
+                current_row = df_logins[df_logins["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                if current_row.empty:
+                    st.error("Could not find your account.")
+                elif str(current_row.iloc[0]["Password"]).strip() != confirm_password.strip():
+                    st.error("Incorrect password.")
+                elif new_username_clean.lower() == st.session_state.username.strip().lower():
+                    st.warning("That's already your current username.")
+                else:
+                    taken = df_logins[df_logins["Username"].astype(str).str.strip().str.lower() == new_username_clean.lower()]
+                    if not taken.empty:
+                        st.error("That username is already taken. Please choose another.")
+                    else:
+                        row_idx = current_row.index[0] + 2
+                        success = update_cell("Student Logins", row_idx, 2, new_username_clean)
+                        
+                        # Keep the Student Profiles sheet (which stores the
+                        # profile photo keyed by Username) pointing at the
+                        # same student after the rename.
+                        df_profiles = load_data("Student Profiles")
+                        if not df_profiles.empty:
+                            df_profiles.columns = df_profiles.columns.astype(str).str.strip()
+                            profile_row = df_profiles[df_profiles["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                            if not profile_row.empty:
+                                p_idx = profile_row.index[0] + 2
+                                update_cell("Student Profiles", p_idx, 1, new_username_clean)
+                        
+                        if success:
+                            st.session_state.username = new_username_clean
+                            st.success(f"Username updated to '{new_username_clean}'!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update username.")
     
     st.markdown('</div></div>', unsafe_allow_html=True)
 
@@ -1185,9 +1216,6 @@ def admin_overview():
         if "Class" in df_students.columns:
             class_count = str(df_students["Class"].nunique())
     
-    # ============================================================
-    # SECTION 1: ENROLLMENT (ALWAYS ALL-TIME)
-    # ============================================================
     enrollment_html = f"""
     <div class="dash-card">
         <div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div>
@@ -1215,9 +1243,6 @@ def admin_overview():
     """
     st.markdown(enrollment_html, unsafe_allow_html=True)
     
-    # ============================================================
-    # SECTION 2: FINANCIALS (TERM-FILTERED)
-    # ============================================================
     badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
     profit_color = GREEN if term_profit >= 0 else RED
     financials_html = f"""
@@ -1266,9 +1291,6 @@ def admin_overview():
     """
     st.markdown(financials_html, unsafe_allow_html=True)
     
-    # ============================================================
-    # SECTION 3: PROFIT DISTRIBUTION (TERM-FILTERED)
-    # ============================================================
     distribution_html = f"""
     <div class="dash-card">
         <div class="dash-card-header">Profit Distribution{badge_html}</div>
