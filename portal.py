@@ -172,7 +172,20 @@ def inject_css():
         
         /* Outer control - shown in the main content area when the
            sidebar is collapsed, used to re-open it. Sits on the light
-           background, so the button + arrow are maroon. */
+           background, so the button + arrow are maroon.
+           
+           NOTE: this control lives inside Streamlit's <header>, which
+           this file hides globally via `header {{visibility: hidden;}}`
+           further down. visibility is inherited by children, so without
+           the override below the whole reopen button disappears along
+           with the header - it's still in the DOM, just not shown. */
+        [data-testid="collapsedControl"] {{
+            visibility: visible !important;
+            z-index: 999999 !important;
+        }}
+        [data-testid="collapsedControl"] * {{
+            visibility: visible !important;
+        }}
         [data-testid="collapsedControl"] button {{
             background-color: {MAROON} !important;
             border: none !important;
