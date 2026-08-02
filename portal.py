@@ -199,7 +199,17 @@ def inject_css():
             z-index: 999999 !important;
             position: relative !important;
         }}
-        [data-testid="stExpandSidebarButton"] svg {{
+        /* The icon inside this button can render either as an <svg> or,
+           if the Material Symbols font fails to load, as literal
+           ligature text like "keyboard_double_arrow_right". Covering
+           only svg (as an earlier version of this rule did) leaves that
+           fallback text fully visible. Collapsing every descendant's
+           font-size to 0 and making it transparent hides either case,
+           regardless of which one actually renders. */
+        [data-testid="stExpandSidebarButton"] * {{
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
             opacity: 0 !important;
         }}
         [data-testid="stExpandSidebarButton"]::after {{
@@ -221,7 +231,10 @@ def inject_css():
         [data-testid="stSidebarCollapseButton"] {{
             position: relative !important;
         }}
-        [data-testid="stSidebarCollapseButton"] svg {{
+        [data-testid="stSidebarCollapseButton"] * {{
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
             opacity: 0 !important;
         }}
         [data-testid="stSidebarCollapseButton"]::after {{
