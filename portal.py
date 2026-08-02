@@ -126,8 +126,10 @@ def inject_css():
         [data-testid="stSidebar"] button div, [data-testid="stSidebar"] button * {{
             color: {WHITE} !important;
         }}
+        
+        /* Hide sidebar collapse/expand arrows completely */
         [data-testid="collapsedControl"] {{
-            display: none;
+            display: none !important;
         }}
         
         h1, h2, h3, h4, h5, h6 {{
@@ -748,11 +750,7 @@ def student_dashboard_home(student_name, student_class):
     
     col1, col2 = st.columns(2)
     
-    # ============================================================
-    # LEFT COLUMN: Personal Details + Academic Details
-    # ============================================================
     with col1:
-        # Personal Details
         st.markdown('<div class="dash-card"><div class="dash-card-header">Personal Details</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not student_info.empty:
             s = student_info.iloc[0]
@@ -770,18 +768,15 @@ def student_dashboard_home(student_name, student_class):
             st.info("No details found.")
         st.markdown('</div></div>', unsafe_allow_html=True)
         
-        # Academic Details
         st.markdown('<div class="dash-card"><div class="dash-card-header">Academic Details</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not student_info.empty:
             s = student_info.iloc[0]
             
-            # Student Number
             student_number = s.get("Student Number", "N/A")
             if student_number == "N/A" or pd.isna(student_number):
                 name_hash = hashlib.md5(student_name.encode()).hexdigest()[:4].upper()
                 student_number = f"ZA-{datetime.now().year}-{name_hash}"
             
-            # Registration Status
             reg_status = "Active"
             df_logins = load_data("Student Logins")
             if not df_logins.empty:
@@ -790,7 +785,6 @@ def student_dashboard_home(student_name, student_class):
                 if not login_row.empty:
                     reg_status = str(login_row.iloc[0].get("Status", "Active"))
             
-            # Current Term
             current_term = "N/A"
             df_perf = load_data("Performance")
             df_fees = load_data("Fee Payments")
@@ -825,9 +819,6 @@ def student_dashboard_home(student_name, student_class):
             st.info("No academic details found.")
         st.markdown('</div></div>', unsafe_allow_html=True)
     
-    # ============================================================
-    # RIGHT COLUMN: Financial Details
-    # ============================================================
     with col2:
         st.markdown('<div class="dash-card"><div class="dash-card-header">Financial Details</div><div class="dash-card-body">', unsafe_allow_html=True)
         df_fee_status = load_data("Fee Status")
@@ -1306,8 +1297,9 @@ def admin_student_grades():
     
     html = '<table style="width:100%; border-collapse:collapse;">'
     html += f'<tr style="background-color:{MAROON}; color:{WHITE};"><th style="padding:10px;">Grade</th><th style="padding:10px;">Mark Range</th><th style="padding:10px;">Description</th></tr>'
-    for grade, mark_range, color, desc in scale_data:
-        html += f'<tr><td style="padding:10px; font-weight:bold; font-size:18px; color:{color};">{grade}</td><td style="padding:10px; color:{MAROON_TEXT};">{mark_range}</td><td style="padding:10px; color:{MAROON_TEXT};">{desc}</td></tr>'
+    for idx, (grade, mark_range, color, desc) in enumerate(scale_data):
+        bg = FAINT_MAROON if idx % 2 == 0 else WHITE
+        html += f'<tr><td style="padding:10px; font-weight:bold; font-size:18px; color:{color}; background-color:{bg};">{grade}</td><td style="padding:10px; color:{MAROON_TEXT}; background-color:{bg};">{mark_range}</td><td style="padding:10px; color:{MAROON_TEXT}; background-color:{bg};">{desc}</td></tr>'
     html += '</table>'
     st.markdown(html, unsafe_allow_html=True)
     
