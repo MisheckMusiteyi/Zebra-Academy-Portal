@@ -10,6 +10,7 @@ from PIL import Image
 import io
 import re
 import random
+import hashlib
 
 # ============================================================
 # PAGE CONFIGURATION
@@ -394,7 +395,7 @@ def init_session():
         'student_name': None,
         'username': None,
         'student_class': None,
-        'current_page': "My Dashboard",
+        'current_page': "My Portal Dashboard",
         'admin_page': "Overview",
         'overview_term_filter': "All Time",
     }
@@ -614,7 +615,7 @@ def student_dashboard():
         
         st.markdown("---")
         
-        pages = ["My Dashboard", "My Performance", "My Fees", "My Attendance", "Profile Settings"]
+        pages = ["My Portal Dashboard", "My Performance", "My Fees", "My Attendance", "Profile Settings"]
         for page in pages:
             if st.button(page, key=f"nav_{page}", use_container_width=True):
                 st.session_state.current_page = page
@@ -628,7 +629,7 @@ def student_dashboard():
     
     page = st.session_state.current_page
     
-    if page == "My Dashboard":
+    if page == "My Portal Dashboard":
         student_dashboard_home(student_name, student_class)
     elif page == "My Performance":
         student_performance(student_name, student_class)
@@ -651,8 +652,12 @@ def student_dashboard_home(student_name, student_class):
     
     col1, col2 = st.columns(2)
     
+    # ============================================================
+    # LEFT COLUMN: Personal Details + Academic Details
+    # ============================================================
     with col1:
-        st.markdown('<div class="dash-card"><div class="dash-card-header">My Details</div><div class="dash-card-body">', unsafe_allow_html=True)
+        # Personal Details
+        st.markdown('<div class="dash-card"><div class="dash-card-header">Personal Details</div><div class="dash-card-body">', unsafe_allow_html=True)
         if not student_info.empty:
             s = student_info.iloc[0]
             details = [
@@ -668,9 +673,67 @@ def student_dashboard_home(student_name, student_class):
         else:
             st.info("No details found.")
         st.markdown('</div></div>', unsafe_allow_html=True)
+        
+        # Academic Details
+        st.markdown('<div class="dash-card"><div class="dash-card-header">Academic Details</div><div class="dash-card-body">', unsafe_allow_html=True)
+        if not student_info.empty:
+            s = student_info.iloc[0]
+            
+            # Student Number
+            student_number = s.get("Student Number", "N/A")
+            if student_number == "N/A" or pd.isna(student_number):
+                name_hash = hashlib.md5(student_name.encode()).hexdigest()[:4].upper()
+                student_number = f"ZA-{datetime.now().year}-{name_hash}"
+            
+            # Registration Status
+            reg_status = "Active"
+            df_logins = load_data("Student Logins")
+            if not df_logins.empty:
+                df_logins.columns = df_logins.columns.astype(str).str.strip()
+                login_row = df_logins[df_logins["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
+                if not login_row.empty:
+                    reg_status = str(login_row.iloc[0].get("Status", "Active"))
+            
+            # Current Term
+            current_term = "N/A"
+            df_perf = load_data("Performance")
+            df_fees = load_data("Fee Payments")
+            latest_terms = []
+            
+            if not df_perf.empty:
+                df_perf.columns = df_perf.columns.astype(str).str.strip()
+                if "Term" in df_perf.columns and "Student Name" in df_perf.columns:
+                    student_perf = df_perf[df_perf["Student Name"].astype(str).apply(normalize_name) == normalize_name(student_name)]
+                    if not student_perf.empty and "Term" in student_perf.columns:
+                        latest_terms.extend(student_perf["Term"].dropna().tolist())
+            
+            if not df_fees.empty:
+                df_fees.columns = df_fees.columns.astype(str).str.strip()
+                name_col = "Name of Student" if "Name of Student" in df_fees.columns else "Student Name"
+                if name_col in df_fees.columns and "Term" in df_fees.columns:
+                    student_payments = df_fees[df_fees[name_col].astype(str).apply(normalize_name) == normalize_name(student_name)]
+                    if not student_payments.empty:
+                        latest_terms.extend(student_payments["Term"].dropna().tolist())
+            
+            if latest_terms:
+                current_term = sorted(latest_terms, reverse=True)[0]
+            
+            html = '<table style="width:100%; border-collapse:collapse;">'
+            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Student Number</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{student_number}</td></tr>'
+            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Class</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{student_class}</td></tr>'
+            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Registration Status</strong></td><td style="padding:8px 0;"><span style="color:{GREEN}; font-weight:bold;">{reg_status}</span></td></tr>'
+            html += f'<tr><td style="padding:8px 0; color:{MAROON_TEXT};"><strong>Current Term</strong></td><td style="padding:8px 0; color:{MAROON_TEXT};">{current_term}</td></tr>'
+            html += '</table>'
+            st.markdown(html, unsafe_allow_html=True)
+        else:
+            st.info("No academic details found.")
+        st.markdown('</div></div>', unsafe_allow_html=True)
     
+    # ============================================================
+    # RIGHT COLUMN: Financial Details
+    # ============================================================
     with col2:
-        st.markdown('<div class="dash-card"><div class="dash-card-header">Fee Status</div><div class="dash-card-body">', unsafe_allow_html=True)
+        st.markdown('<div class="dash-card"><div class="dash-card-header">Financial Details</div><div class="dash-card-body">', unsafe_allow_html=True)
         df_fee_status = load_data("Fee Status")
         if not df_fee_status.empty:
             df_fee_status.columns = df_fee_status.columns.astype(str).str.strip()
@@ -980,7 +1043,6 @@ def admin_overview():
     badge_html = '<span class="term-badge">ALL TIME</span>' if selected_term == "All Time" else f'<span class="term-badge">{selected_term}</span>'
     profit_color = GREEN if term_profit >= 0 else RED
     
-    # Enrollment Section
     st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div>
@@ -995,7 +1057,6 @@ def admin_overview():
     </div>
     """, unsafe_allow_html=True)
     
-    # Financials Section
     st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Financials{badge_html}</div>
@@ -1020,7 +1081,6 @@ def admin_overview():
     </div>
     """, unsafe_allow_html=True)
     
-    # Profit Distribution Section
     st.markdown(f"""
     <div class="dash-card">
         <div class="dash-card-header">Profit Distribution{badge_html}</div>
@@ -1137,7 +1197,6 @@ def admin_student_grades():
     
     st.markdown('</div></div>', unsafe_allow_html=True)
     
-    # Grading Scale
     st.markdown('<div class="dash-card"><div class="dash-card-header">Grading Scale</div><div class="dash-card-body">', unsafe_allow_html=True)
     
     scale_data = [
@@ -1195,7 +1254,6 @@ def admin_register_student():
             if not password:
                 password = "student123"
             
-            # Students: Timestamp | Student Name | Class | Date of Birth | Gender | Guardian Name | Guardian Phone | Address | Enrollment Date
             success1 = write_data("Students", [
                 str(datetime.now()),
                 student_name,
@@ -1208,7 +1266,6 @@ def admin_register_student():
                 str(enrollment_date)
             ])
             
-            # Student Logins: Student Name | Username | Password | Class | Status
             success2 = write_data("Student Logins", [
                 student_name,
                 username,
@@ -1257,7 +1314,6 @@ def admin_record_fee():
         elif amount <= 0:
             st.error("Please enter an amount.")
         else:
-            # Fee Payments: Timestamp | Name of Student | Date | Term | Amount Paid | Payment Method | Term month
             success = write_data("Fee Payments", [
                 str(datetime.now()),
                 student_name,
@@ -1319,7 +1375,6 @@ def admin_enter_performance():
         elif not subject:
             st.error("Please enter a subject.")
         else:
-            # Performance: Student Name | Date of Birth | Term | Subject | Mark | Grade | Comment
             success = write_data("Performance", [
                 student_name,
                 student_dob,
@@ -1389,7 +1444,6 @@ def admin_mark_attendance():
             
             if st.button("Record Absences"):
                 if absent_students:
-                    # Attendance: Timestamp | Date | Absent Student(s)
                     write_data("Attendance", [
                         str(datetime.now()),
                         str(absence_date),
@@ -1428,7 +1482,6 @@ def admin_record_expense():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            # Expenses: Timestamp | Date | Expense Description | Amount | Term | Term Month | Category
             success = write_data("Expenses", [
                 str(datetime.now()),
                 str(expense_date),
@@ -1463,7 +1516,6 @@ def admin_record_other_income():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            # Other Income: Timestamp | Date | Income Description | Amount
             success = write_data("Other Income", [
                 str(datetime.now()),
                 str(income_date),
@@ -1508,7 +1560,6 @@ def admin_salary_payments():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            # Salaries: Date | Term | Term Month | Recipient | Percentage | Amount
             success = write_data("Salaries", [
                 str(salary_date),
                 term,
