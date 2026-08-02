@@ -157,7 +157,16 @@ def inject_css():
            "keyboard_double_arrow_right" if that font fails to load.
            Instead of depending on that font, we hide whatever native
            icon/text Streamlit renders and draw our own simple arrow
-           with a CSS pseudo-element. */
+           with a CSS pseudo-element.
+           
+           IMPORTANT: the arrow glyphs below are written as literal
+           unicode characters, not "\\276F"-style escapes. Inside a
+           Python f-string, a backslash sequence like that is parsed by
+           Python itself (as the octal escape \\276, i.e. the character
+           '\u00be', followed by a literal "F") before the string ever
+           becomes CSS - so the browser was receiving a stray glyph +
+           letter instead of an arrow. Using the real character sidesteps
+           Python's escape parsing entirely. */
         
         /* Outer control - shown in the main content area when the
            sidebar is collapsed, used to re-open it. Sits on the light
@@ -190,7 +199,7 @@ def inject_css():
             display: inline-block !important;
         }}
         [data-testid="collapsedControl"] button::after {{
-            content: "\276F" !important;
+            content: "❯" !important;
             font-family: Arial, Helvetica, sans-serif !important;
             font-size: 16px !important;
             font-weight: bold !important;
@@ -223,7 +232,7 @@ def inject_css():
         [data-testid="stSidebarCollapseButton"]::after,
         [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"]::after,
         [data-testid="stSidebar"] button[kind="header"]::after {{
-            content: "\276E" !important;
+            content: "❮" !important;
             font-family: Arial, Helvetica, sans-serif !important;
             font-size: 16px !important;
             font-weight: bold !important;
