@@ -148,97 +148,90 @@ def inject_css():
            hiding it - hiding it is what strands users when Streamlit
            auto-collapses the sidebar on narrow/embedded viewports.
            
-           Streamlit renders this icon using a ligature font (Material
-           Symbols) that reads out as literal text like
-           "keyboard_double_arrow_right" if that font fails to load.
-           Instead of depending on that font, we hide whatever native
-           icon/text Streamlit renders and draw our own simple arrow
-           with a CSS pseudo-element.
+           IMPORTANT (verified against the installed Streamlit package,
+           v1.60): the testid this file used to target -
+           [data-testid="collapsedControl"] - does not exist in current
+           Streamlit. It was split into two different elements:
            
-           IMPORTANT: the arrow glyphs below are written as literal
-           unicode characters, not "\\276F"-style escapes. Inside a
-           Python f-string, a backslash sequence like that is parsed by
-           Python itself (as the octal escape \\276, i.e. the character
-           '\u00be', followed by a literal "F") before the string ever
-           becomes CSS - so the browser was receiving a stray glyph +
-           letter instead of an arrow. Using the real character sidesteps
-           Python's escape parsing entirely. */
-        
-        /* We hide the native icon glyph with opacity (not width/height:0
-           or display:none) so the button keeps its normal clickable box
-           and Streamlit's own click handler still fires. The arrow is
-           then drawn with an absolutely-positioned ::after centered over
-           the button, purely visual and not part of layout/click flow. */
-        
-        /* Outer control - shown in the main content area when the
-           sidebar is collapsed, used to re-open it. Sits on the light
-           background, so the button + arrow are maroon.
+             - data-testid="stExpandSidebarButton" -> the button shown
+               when the sidebar IS collapsed, used to reopen it. This
+               button is rendered INSIDE Streamlit's <header> toolbar
+               (data-testid="stHeader" / class "stAppHeader"), which is
+               exactly the element this file hides below with
+               `header {{visibility: hidden;}}`. Because the old selector
+               no longer matches anything, that inherited
+               visibility:hidden was never being overridden, so the
+               reopen button was present in the DOM but fully invisible
+               and unclickable - which is exactly what the blank corner
+               in the screenshot shows.
            
-           NOTE: this control lives inside Streamlit's <header>, which
-           this file hides globally via `header {{visibility: hidden;}}`
-           further down. visibility is inherited by children, so without
-           the override below the whole reopen button disappears along
-           with the header - it's still in the DOM, just not shown. */
-        [data-testid="collapsedControl"] {{
+             - data-testid="stSidebarCollapseButton" -> the button
+               INSIDE the open sidebar used to close it. It lives inside
+               [data-testid="stSidebar"], not the header, so it was
+               already visible; this file's old CSS just never drew a
+               custom arrow glyph on top of it because it (also
+               incorrectly) tried to match it under the old
+               "collapsedControl" family of selectors.
+           
+           Both are still real <button> elements using an inline SVG
+           icon (Streamlit no longer relies on a ligature icon font for
+           this control), so there's no "font fails to load, shows raw
+           text" risk here anymore - but we still draw our own arrow
+           glyph on top for a crisper, on-brand look, the same way the
+           rest of this file already treats icon buttons. */
+        
+        /* Reopen button - rendered inside <header>, which is globally
+           hidden via `header {{visibility: hidden;}}` further down.
+           visibility is inherited, so we must explicitly re-declare
+           visibility: visible on this element (and its ancestor
+           wrappers) to pull it back out of that inherited hidden state.
+           Sits on the light background, so button + arrow are maroon. */
+        header[data-testid="stHeader"] {{
+            visibility: visible !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }}
+        header[data-testid="stHeader"] [data-testid="stToolbar"] > *:not([data-testid="stExpandSidebarButton"]) {{
+            visibility: hidden !important;
+        }}
+        [data-testid="stExpandSidebarButton"] {{
             visibility: visible !important;
             z-index: 999999 !important;
-        }}
-        [data-testid="collapsedControl"] * {{
-            visibility: visible !important;
-        }}
-        [data-testid="collapsedControl"] button {{
-            background-color: {MAROON} !important;
-            border: none !important;
-            border-radius: 50% !important;
             position: relative !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
         }}
-        [data-testid="collapsedControl"] button svg,
-        [data-testid="collapsedControl"] button span,
-        [data-testid="collapsedControl"] button p {{
+        [data-testid="stExpandSidebarButton"] svg {{
             opacity: 0 !important;
         }}
-        [data-testid="collapsedControl"] button::after {{
-            content: "❯" !important;
+        [data-testid="stExpandSidebarButton"]::after {{
+            content: "\\276F" !important;
             position: absolute !important;
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
             font-family: Arial, Helvetica, sans-serif !important;
-            font-size: 16px !important;
+            font-size: 18px !important;
             font-weight: bold !important;
-            color: {WHITE} !important;
+            color: {MAROON} !important;
             line-height: 1 !important;
             pointer-events: none !important;
         }}
         
-        /* Inner control - the small button inside the open sidebar
-           used to collapse it. Sits on the maroon sidebar background,
-           so the arrow is white. Covers the testids used across
-           recent Streamlit versions. */
-        [data-testid="stSidebarCollapseButton"],
-        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"],
-        [data-testid="stSidebar"] button[kind="header"] {{
+        /* Collapse button - lives inside the open sidebar itself, so it
+           sits on the maroon sidebar background and needs a white arrow. */
+        [data-testid="stSidebarCollapseButton"] {{
             position: relative !important;
         }}
-        [data-testid="stSidebarCollapseButton"] svg,
-        [data-testid="stSidebarCollapseButton"] span,
-        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] svg,
-        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] span,
-        [data-testid="stSidebar"] button[kind="header"] svg,
-        [data-testid="stSidebar"] button[kind="header"] span {{
+        [data-testid="stSidebarCollapseButton"] svg {{
             opacity: 0 !important;
         }}
-        [data-testid="stSidebarCollapseButton"]::after,
-        [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"]::after,
-        [data-testid="stSidebar"] button[kind="header"]::after {{
-            content: "❮" !important;
+        [data-testid="stSidebarCollapseButton"]::after {{
+            content: "\\276E" !important;
             position: absolute !important;
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
             font-family: Arial, Helvetica, sans-serif !important;
-            font-size: 16px !important;
+            font-size: 18px !important;
             font-weight: bold !important;
             color: {WHITE} !important;
             line-height: 1 !important;
@@ -484,7 +477,6 @@ def inject_css():
         
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
-        header {{visibility: hidden;}}
         
         [data-testid="stFileUploadDropzone"] {{
             position: relative;
@@ -1157,17 +1149,6 @@ def admin_overview():
     # ============================================================
     # SECTION 1: ENROLLMENT (ALWAYS ALL-TIME)
     # ============================================================
-    # NOTE: this whole card - header, body and every metric tile - is
-    # built as ONE html string and passed to a SINGLE st.markdown call.
-    # The previous version opened the <div class="dash-card"> in one
-    # st.markdown call, rendered the metric tiles via st.columns(), and
-    # closed the div in a third st.markdown call. Streamlit renders each
-    # of those calls into its own separate DOM fragment, so the open
-    # <div> was never actually wrapping the columns - the browser just
-    # auto-closed it immediately, leaving an empty white box (the
-    # "dash-card-body" with nothing in it) with the real metric tiles
-    # floating below, unstyled. Building the whole card as one string
-    # keeps everything genuinely nested inside the same element.
     enrollment_html = f"""
     <div class="dash-card">
         <div class="dash-card-header">Enrollment<span class="lifetime-badge">ALL TIME</span></div>
