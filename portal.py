@@ -16,7 +16,7 @@ import hashlib
 # PAGE CONFIGURATION
 # ============================================================
 st.set_page_config(
-    page_title="Zebra Academy Portal",
+    page_title="Zebra Pace Academy Portal",
     page_icon="ZA",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -25,7 +25,7 @@ st.set_page_config(
 # ============================================================
 # BRANDING
 # ============================================================
-SCHOOL_NAME = "Zebra Academy"
+SCHOOL_NAME = "Zebra Pace Academy"
 SCHOOL_LOGO_URL = "https://raw.githubusercontent.com/MisheckMusiteyi/Zebra-Academy-Portal/main/Zebra%20Academy.jpg"
 SHEET_NAME = "Zebra Academy"
 
