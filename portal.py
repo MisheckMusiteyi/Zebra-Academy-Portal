@@ -1357,7 +1357,7 @@ def admin_overview():
                 <div class="metric-card" style="border:2px solid {GREEN};"><div class="metric-value" style="color:{GREEN};">${net_profit:,.0f}</div><div class="metric-label">Retained Profit</div><div class="metric-label">45%</div></div>
             </div>
             <hr class="section-divider">
-            <h4>Salary Split (20% / 4 = 5% each)</h4>
+            <h4>Salaries</h4>
             <div class="metric-grid metric-grid-4">
                 <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mr Kawonde</div><div class="metric-label">5%</div></div>
                 <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mrs Kawonde</div><div class="metric-label">5%</div></div>
