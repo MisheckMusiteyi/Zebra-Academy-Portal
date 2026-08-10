@@ -127,32 +127,6 @@ def inject_css():
             color: {WHITE} !important;
         }}
         
-        /* ============================================= */
-        /* SIDEBAR COLLAPSE/EXPAND TOGGLE                 */
-        /* Streamlit renders this icon with a ligature    */
-        /* font; if that font fails to load, the raw name */
-        /* ("keyboard_double_arrow_left") shows as text.  */
-        /* We hide whatever native icon/text renders and  */
-        /* draw a plain arrow ourselves - using literal    */
-        /* characters (not CSS escape codes) so a Python   */
-        /* string-escaping bug can't corrupt it again.     */
-        /* The substring selector below matches both the   */
-        /* outer "collapsedControl" (re-open, light bg)     */
-        /* and the inner sidebar toggle (collapse, maroon   */
-        /* bg) across Streamlit versions, since both        */
-        /* testids contain "ollapse".                        */
-        /*                                                   */
-        /* IMPORTANT: font-size:0 is set on the BUTTON       */
-        /* itself, not just its svg/span/p children. Some    */
-        /* Streamlit versions render the icon ligature text  */
-        /* as a bare text node directly inside the <button>, */
-        /* with no wrapping element - a selector that only   */
-        /* targets descendant span/svg/p never touches that  */
-        /* text, so it still shows through. Zeroing the      */
-        /* button's own font-size hides any such direct text */
-        /* node too; the ::after arrow below sets its own     */
-        /* font-size explicitly so it isn't affected.         */
-        /* ============================================= */
         [data-testid*="ollapse" i] svg,
         [data-testid*="ollapse" i] span,
         [data-testid*="ollapse" i] p {{
@@ -205,10 +179,6 @@ def inject_css():
         label, .stTextInput label, .stNumberInput label, .stSelectbox label, .stDateInput label {{
             color: {MAROON_TEXT} !important;
         }}
-        
-        /* ============================================= */
-        /* ALL TABLES - ALTERNATING ROW COLORS */
-        /* ============================================= */
         
         [data-testid="stDataFrame"] table,
         .stDataFrame table,
@@ -372,7 +342,6 @@ def inject_css():
             color: {MAROON_TEXT} !important;
         }}
         
-        /* Custom tables inside dash cards */
         .dash-card table {{
             width: 100%;
             border-collapse: collapse;
@@ -493,21 +462,6 @@ def inject_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         
-        /* ============================================= */
-        /* FILE UPLOADER - fixed layout so instruction    */
-        /* text and the Browse button don't overlap        */
-        /*                                                  */
-        /* IMPORTANT: Streamlit renders the "Browse files"  */
-        /* button with position:absolute by default. An      */
-        /* absolutely-positioned element is taken out of      */
-        /* normal flow entirely and positioned relative to    */
-        /* its nearest positioned ancestor - it does NOT       */
-        /* participate in the parent's flex layout at all,     */
-        /* so flex-direction/justify-content/gap on the         */
-        /* dropzone/section have no effect on it whatsoever      */
-        /* until position is reset back to static (the default    */
-        /* for a normal flex child) below.                          */
-        /* ============================================= */
         [data-testid="stFileUploadDropzone"] {{
             background-color: {WHITE} !important;
             border: 2px dashed {CARD_BORDER} !important;
@@ -661,12 +615,13 @@ def write_data(sheet_name, data):
         try:
             sheet = client.open(SHEET_NAME).worksheet(sheet_name)
             sheet.append_row(data)
+            time.sleep(0.7)  # let Sheets settle before any immediate re-read
             return True
         except Exception as e:
             if attempt < 2:
                 connect_to_sheets.clear()
                 client = connect_to_sheets()
-                time.sleep(1)
+                time.sleep(2)
             else:
                 st.error(f"Failed to write to '{sheet_name}': {e}")
                 return False
@@ -1157,7 +1112,10 @@ def filter_by_term(df, term):
 def safe_sum(df, column_name):
     if df.empty or column_name not in df.columns:
         return 0.0
-    return pd.to_numeric(df[column_name], errors='coerce').sum()
+    return pd.to_numeric(
+        df[column_name].astype(str).str.replace(r'[$,]', '', regex=True),
+        errors='coerce'
+    ).sum()
 
 # ============================================================
 # AUTO-GRADING SYSTEM
@@ -1357,7 +1315,7 @@ def admin_overview():
                 <div class="metric-card" style="border:2px solid {GREEN};"><div class="metric-value" style="color:{GREEN};">${net_profit:,.0f}</div><div class="metric-label">Retained Profit</div><div class="metric-label">45%</div></div>
             </div>
             <hr class="section-divider">
-            <h4>Salaries</h4>
+            <h4>Salary Split (20% / 4 = 5% each)</h4>
             <div class="metric-grid metric-grid-4">
                 <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mr Kawonde</div><div class="metric-label">5%</div></div>
                 <div class="metric-card"><div class="metric-value">${per_person:,.0f}</div><div class="metric-label">Mrs Kawonde</div><div class="metric-label">5%</div></div>
@@ -1564,11 +1522,11 @@ def admin_record_fee():
             "Term 1 2026", "Term 2 2026", "Term 3 2026",
             "Term 1 2027", "Term 2 2027", "Term 3 2027"
         ])
+        term_month = st.text_input("Term Month", placeholder="e.g., Term 2 August 2026")
     
     with col2:
-        amount = st.number_input("Amount Paid*", min_value=0.0, step=10.0)
+        amount = st.number_input("Amount Paid*", min_value=0.0, step=10.0, format="%.2f")
         payment_method = st.selectbox("Payment Method", ["Cash", "EFT", "Mobile Money", "Cheque", "Other"])
-        term_month = st.text_input("Term Month", placeholder="e.g., Term 1 January 2026")
     
     if st.button("Record Payment", use_container_width=True):
         if student_name == "Select student...":
@@ -1576,15 +1534,17 @@ def admin_record_fee():
         elif amount <= 0:
             st.error("Please enter an amount.")
         else:
-            success = write_data("Fee Payments", [
+            # A: Timestamp | B: Name of Student | C: Date | D: Term | E: Amount Paid | F: Payment Method | G: Term month
+            row_data = [
                 str(datetime.now()),
                 student_name,
                 str(payment_date),
                 term,
-                amount,
+                float(amount),
                 payment_method,
                 term_month
-            ])
+            ]
+            success = write_data("Fee Payments", row_data)
             if success:
                 st.success(f"Payment of ${amount:,.2f} recorded for {student_name}!")
             else:
