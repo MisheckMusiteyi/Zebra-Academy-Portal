@@ -619,6 +619,60 @@ def inject_css():
         [data-baseweb="tag"] span {{
             color: {WHITE} !important;
         }}
+        
+        /* --- Date input box + its calendar popover ---
+           BaseWeb's Datepicker draws its own colors and ignores the page's
+           color-scheme, so it needs to be targeted explicitly. */
+        
+        [data-testid="stDateInput"] [data-baseweb="base-input"],
+        [data-testid="stDateInput"] [data-baseweb="input"] {{
+            background-color: {WHITE} !important;
+        }}
+        [data-testid="stDateInput"] input {{
+            background-color: {WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        [data-baseweb="calendar"] {{
+            background-color: {WHITE} !important;
+        }}
+        [data-baseweb="calendar"] * {{
+            color: {MAROON_TEXT} !important;
+        }}
+        [data-baseweb="calendar"] div {{
+            background-color: {WHITE} !important;
+        }}
+        [data-baseweb="calendar"] button {{
+            background-color: {WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        [data-baseweb="calendar"] button:hover {{
+            background-color: {HOVER_MAROON} !important;
+        }}
+        [data-baseweb="calendar"] [aria-disabled="true"] {{
+            color: {CARD_BORDER} !important;
+        }}
+        [data-baseweb="calendar"] [aria-selected="true"],
+        [data-baseweb="calendar"] [aria-selected="true"]:hover {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+        }}
+        [data-baseweb="calendar"] svg {{
+            fill: {MAROON_TEXT} !important;
+        }}
+        
+        /* Same dark-render issue can hit selectbox/multiselect dropdown menus */
+        [data-baseweb="menu"], [data-baseweb="popover"] ul[role="listbox"] {{
+            background-color: {WHITE} !important;
+        }}
+        [data-baseweb="menu"] li, [role="option"] {{
+            background-color: {WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        [role="option"]:hover, [role="option"][aria-selected="true"] {{
+            background-color: {HOVER_MAROON} !important;
+            color: {MAROON_TEXT} !important;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
