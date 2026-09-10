@@ -609,12 +609,29 @@ def load_data(sheet_name):
                 st.error(f"Failed to load '{sheet_name}': {e}")
                 return pd.DataFrame()
 
-def write_data(sheet_name, data):
+def write_data(sheet_name, data_dict):
+    """
+    Write one row to a worksheet, keyed by COLUMN HEADER NAME rather than
+    position. This makes writes immune to the sheet's columns being
+    reordered, and means a typo in a header shows up as a blank cell
+    instead of data silently landing under the wrong column.
+
+    data_dict: {"Header Name": value, ...}
+    Any header present in the sheet but missing from data_dict is written
+    as an empty string. Keys in data_dict that don't match any header in
+    the sheet are ignored (so double-check your header spelling matches
+    exactly, including capitalization).
+    """
     client = connect_to_sheets()
     for attempt in range(3):
         try:
             sheet = client.open(SHEET_NAME).worksheet(sheet_name)
-            sheet.append_row(data)
+            headers = [h.strip() for h in sheet.row_values(1)]
+            if not headers:
+                st.error(f"'{sheet_name}' has no header row — cannot map columns.")
+                return False
+            row = [data_dict.get(h, "") for h in headers]
+            sheet.append_row(row, value_input_option="USER_ENTERED")
             time.sleep(0.7)  # let Sheets settle before any immediate re-read
             return True
         except Exception as e:
@@ -1033,11 +1050,11 @@ def student_profile_settings():
                         row_idx = existing.index[0] + 2
                         update_cell("Student Profiles", row_idx, 3, b64_str)
                     else:
-                        write_data("Student Profiles", [
-                            st.session_state.username,
-                            st.session_state.student_name,
-                            b64_str
-                        ])
+                        write_data("Student Profiles", {
+                            "Username": st.session_state.username,
+                            "Student Name": st.session_state.student_name,
+                            "Profile Photo": b64_str,
+                        })
                     st.success("Profile photo updated! Refresh to see changes.")
                     st.rerun()
     
@@ -1474,25 +1491,25 @@ def admin_register_student():
             if not password:
                 password = "student123"
             
-            success1 = write_data("Students", [
-                str(datetime.now()),
-                student_name,
-                student_class,
-                str(dob),
-                gender,
-                guardian_name,
-                guardian_phone,
-                address,
-                str(enrollment_date)
-            ])
+            success1 = write_data("Students", {
+                "Timestamp": str(datetime.now()),
+                "Student Name": student_name,
+                "Class": student_class,
+                "Date of Birth": str(dob),
+                "Gender": gender,
+                "Guardian Name": guardian_name,
+                "Guardian Phone": guardian_phone,
+                "Address": address,
+                "Enrollment Date": str(enrollment_date),
+            })
             
-            success2 = write_data("Student Logins", [
-                student_name,
-                username,
-                password,
-                student_class,
-                "Active"
-            ])
+            success2 = write_data("Student Logins", {
+                "Student Name": student_name,
+                "Username": username,
+                "Password": password,
+                "Class": student_class,
+                "Status": "Active",
+            })
             
             if success1 and success2:
                 st.success(f"Student registered successfully!\n\nUsername: {username}\nPassword: {password}")
@@ -1534,17 +1551,17 @@ def admin_record_fee():
         elif amount <= 0:
             st.error("Please enter an amount.")
         else:
-            # A: Timestamp | B: Name of Student | C: Date | D: Term | E: Amount Paid | F: Payment Method | G: Term month
-            row_data = [
-                str(datetime.now()),
-                student_name,
-                str(payment_date),
-                term,
-                float(amount),
-                payment_method,
-                term_month
-            ]
-            success = write_data("Fee Payments", row_data)
+            # Headers expected in the "Fee Payments" tab:
+            # Timestamp | Name of Student | Date | Term | Amount Paid | Payment Method | Term Month
+            success = write_data("Fee Payments", {
+                "Timestamp": str(datetime.now()),
+                "Name of Student": student_name,
+                "Date": str(payment_date),
+                "Term": term,
+                "Amount Paid": float(amount),
+                "Payment Method": payment_method,
+                "Term Month": term_month,
+            })
             if success:
                 st.success(f"Payment of ${amount:,.2f} recorded for {student_name}!")
             else:
@@ -1597,15 +1614,15 @@ def admin_enter_performance():
         elif not subject:
             st.error("Please enter a subject.")
         else:
-            success = write_data("Performance", [
-                student_name,
-                student_dob,
-                term,
-                subject,
-                mark,
-                auto_grade,
-                comment
-            ])
+            success = write_data("Performance", {
+                "Student Name": student_name,
+                "Date of Birth": student_dob,
+                "Term": term,
+                "Subject": subject,
+                "Mark": mark,
+                "Grade": auto_grade,
+                "Comment": comment,
+            })
             if success:
                 st.success(f"Result saved for {student_name} - {subject}: {mark}% ({auto_grade})")
             else:
@@ -1666,11 +1683,11 @@ def admin_mark_attendance():
             
             if st.button("Record Absences"):
                 if absent_students:
-                    write_data("Attendance", [
-                        str(datetime.now()),
-                        str(absence_date),
-                        absent_str
-                    ])
+                    write_data("Attendance", {
+                        "Timestamp": str(datetime.now()),
+                        "Date": str(absence_date),
+                        "Absent Students": absent_str,
+                    })
                     st.success(f"Recorded {len(absent_students)} absent student(s) on {absence_date}")
                 else:
                     st.warning("No students selected.")
@@ -1704,15 +1721,17 @@ def admin_record_expense():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            success = write_data("Expenses", [
-                str(datetime.now()),
-                str(expense_date),
-                description,
-                amount,
-                term,
-                term_month,
-                category
-            ])
+            # Headers expected in the "Expenses" tab:
+            # Timestamp | Date | Description | Amount | Term | Term Month | Category
+            success = write_data("Expenses", {
+                "Timestamp": str(datetime.now()),
+                "Date": str(expense_date),
+                "Description": description,
+                "Amount": amount,
+                "Term": term,
+                "Term Month": term_month,
+                "Category": category,
+            })
             if success:
                 st.success(f"Expense of ${amount:,.2f} recorded!")
             else:
@@ -1738,12 +1757,12 @@ def admin_record_other_income():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            success = write_data("Other Income", [
-                str(datetime.now()),
-                str(income_date),
-                description,
-                amount
-            ])
+            success = write_data("Other Income", {
+                "Timestamp": str(datetime.now()),
+                "Date": str(income_date),
+                "Description": description,
+                "Amount": amount,
+            })
             if success:
                 st.success(f"Income of ${amount:,.2f} recorded!")
             else:
@@ -1782,14 +1801,14 @@ def admin_salary_payments():
         if amount <= 0:
             st.error("Please enter an amount.")
         else:
-            success = write_data("Salaries", [
-                str(salary_date),
-                term,
-                term_month,
-                recipient,
-                "5%",
-                amount
-            ])
+            success = write_data("Salaries", {
+                "Date": str(salary_date),
+                "Term": term,
+                "Term Month": term_month,
+                "Recipient": recipient,
+                "Percentage": "5%",
+                "Amount": amount,
+            })
             if success:
                 st.success(f"Salary of ${amount:,.2f} paid to {recipient}!")
             else:
