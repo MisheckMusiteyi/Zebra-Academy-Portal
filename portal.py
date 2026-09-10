@@ -52,12 +52,20 @@ def inject_css():
     <style>
         :root, [data-theme="light"], [data-theme="dark"] {{
             --background-color: {OFF_WHITE} !important;
+            --secondary-background-color: {WHITE} !important;
             --text-color: {MAROON_TEXT} !important;
             --font: 'Georgia', 'Times New Roman', serif !important;
             --primary-color: {MAROON} !important;
+            color-scheme: light !important;
         }}
         
-        html, body, [data-testid="stAppViewContainer"], .main, .block-container {{
+        html {{
+            color-scheme: light !important;
+        }}
+        
+        html, body, [data-testid="stAppViewContainer"], .main, .block-container,
+        [data-testid="stApp"], [data-testid="stHeader"], [data-testid="stToolbar"],
+        [data-testid="stBottomBlockContainer"] {{
             background-color: {OFF_WHITE} !important;
             color: {MAROON_TEXT} !important;
         }}
@@ -550,6 +558,66 @@ def inject_css():
         }}
         .stDateInput input {{
             color: {MAROON_TEXT} !important;
+        }}
+        
+        /* --- Widgets that pull from Streamlit's live theme color rather than
+           plain CSS, and so can drift from the palette above on theme changes --- */
+        
+        a, a:visited {{
+            color: {MAROON} !important;
+        }}
+        
+        [data-baseweb="tooltip"], [data-baseweb="popover"] {{
+            background-color: {WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* Toggle switches */
+        [data-baseweb="checkbox"] [aria-checked="true"] > div:first-child,
+        [data-testid="stToggle"] [aria-checked="true"] {{
+            background-color: {MAROON} !important;
+            border-color: {MAROON} !important;
+        }}
+        
+        /* Slider track/handle/labels */
+        [data-testid="stSlider"] [role="slider"] {{
+            background-color: {MAROON} !important;
+            border-color: {MAROON} !important;
+        }}
+        [data-testid="stSlider"] div[data-baseweb="slider"] > div > div {{
+            background-color: {MAROON} !important;
+        }}
+        [data-testid="stTickBarMin"], [data-testid="stTickBarMax"],
+        [data-testid="stSliderThumbValue"] {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* Progress bar */
+        [data-testid="stProgress"] > div > div > div {{
+            background-color: {MAROON} !important;
+        }}
+        
+        /* Spinner */
+        [data-testid="stSpinner"] svg circle {{
+            stroke: {MAROON} !important;
+        }}
+        [data-testid="stSpinner"] p {{
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* Toasts / notifications */
+        [data-testid="stToast"] {{
+            background-color: {WHITE} !important;
+            color: {MAROON_TEXT} !important;
+        }}
+        
+        /* Multiselect selected-item pills */
+        [data-baseweb="tag"] {{
+            background-color: {MAROON} !important;
+            color: {WHITE} !important;
+        }}
+        [data-baseweb="tag"] span {{
+            color: {WHITE} !important;
         }}
     </style>
     """, unsafe_allow_html=True)
