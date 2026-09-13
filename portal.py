@@ -977,7 +977,7 @@ def compute_expected_monthly_fee(df_enrollments, student_number, month):
         total += pd.to_numeric(row.get("Monthly Fee", 0), errors="coerce") or 0.0
     return total
 
-
+def hash_password(plain_password):
     """One-way hash for storage. There is no function to reverse this —
     verification only ever checks 'does this input match', it never
     recovers the original password."""
@@ -1073,17 +1073,49 @@ def login_page():
         
         with tab2:
             st.markdown("### Admin Login")
+            admin_username = st.text_input("Admin Username", key="admin_user", value="admin")
             admin_pass = st.text_input("Admin Password", type="password", key="admin_pass")
             
             if st.button("Login", key="admin_login_btn", use_container_width=True):
-                if admin_pass == "admin2026":
-                    st.session_state.logged_in = True
-                    st.session_state.user_type = "admin"
-                    st.session_state.username = "admin"
-                    st.session_state.student_name = "Administrator"
-                    st.rerun()
+                df_admins = load_data("Admin Logins")
+                
+                if df_admins.empty:
+                    # First-ever admin login: seed the sheet with a hashed
+                    # account instead of leaving the password hardcoded in
+                    # source. Uses the same bootstrap password as before,
+                    # once, to avoid locking anyone out on rollout.
+                    if admin_username.strip() == "admin" and admin_pass == "admin2026":
+                        write_data("Admin Logins", {
+                            "Username": "admin",
+                            "Password": hash_password("admin2026"),
+                        })
+                        st.session_state.logged_in = True
+                        st.session_state.user_type = "admin"
+                        st.session_state.username = "admin"
+                        st.session_state.student_name = "Administrator"
+                        st.rerun()
+                    else:
+                        st.error("Invalid admin username or password.")
                 else:
-                    st.error("Invalid admin password.")
+                    df_admins.columns = df_admins.columns.astype(str).str.strip()
+                    admin_match = df_admins[df_admins["Username"].astype(str).str.strip() == admin_username.strip()]
+                    if not admin_match.empty and verify_password(admin_pass, admin_match.iloc[0].get("Password", "")):
+                        admin_row = admin_match.iloc[0]
+                        
+                        # Upgrade a legacy plaintext admin row the same way
+                        # student rows get upgraded.
+                        if not is_hashed(admin_row.get("Password", "")):
+                            row_idx = admin_match.index[0] + 2
+                            pw_col_idx = df_admins.columns.get_loc("Password") + 1
+                            update_cell("Admin Logins", row_idx, pw_col_idx, hash_password(admin_pass))
+                        
+                        st.session_state.logged_in = True
+                        st.session_state.user_type = "admin"
+                        st.session_state.username = admin_username.strip()
+                        st.session_state.student_name = "Administrator"
+                        st.rerun()
+                    else:
+                        st.error("Invalid admin username or password.")
         
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -1416,11 +1448,12 @@ def student_profile_settings():
                     existing = df_profiles[df_profiles["Username"].astype(str).str.strip().str.lower() == st.session_state.username.strip().lower()]
                     if not existing.empty:
                         row_idx = existing.index[0] + 2
-                        update_cell("Student Profiles", row_idx, 3, b64_str)
+                        photo_col_idx = df_profiles.columns.get_loc("Profile Photo") + 1
+                        update_cell("Student Profiles", row_idx, photo_col_idx, b64_str)
                     else:
                         write_data("Student Profiles", {
                             "Username": st.session_state.username,
-                            "Student Name": st.session_state.student_name,
+                            "Display Name": st.session_state.student_name,
                             "Profile Photo": b64_str,
                         })
                     st.success("Profile photo updated! Refresh to see changes.")
@@ -1577,6 +1610,7 @@ def admin_dashboard():
             "Record Other Income",
             "Salary Payments",
             "All Students",
+            "Account Settings",
         ]
         
         for page in admin_pages:
@@ -1616,6 +1650,8 @@ def admin_dashboard():
         admin_salary_payments()
     elif page == "All Students":
         admin_all_students()
+    elif page == "Account Settings":
+        admin_account_settings()
 
 # ============================================================
 # ADMIN OVERVIEW
@@ -2480,7 +2516,7 @@ def admin_record_other_income():
             success = write_data("Other Income", {
                 "Timestamp": str(datetime.now()),
                 "Date": str(income_date),
-                "Description": description,
+                "Income Description": description,
                 "Amount": amount,
             })
             if success:
@@ -2561,6 +2597,76 @@ def admin_all_students():
         st.markdown(f"**Total:** {len(df_students)} student(s)")
     else:
         st.info("No students registered yet.")
+
+def admin_account_settings():
+    st.markdown("## Account Settings")
+    
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Change Your Password</div><div class="dash-card-body">', unsafe_allow_html=True)
+    st.markdown(f"**Logged in as:** {st.session_state.username}")
+    
+    current_password = st.text_input("Current Password", type="password", key="admin_current_pw")
+    new_password = st.text_input("New Password", type="password", key="admin_new_pw")
+    confirm_password = st.text_input("Confirm New Password", type="password", key="admin_confirm_pw")
+    
+    if st.button("Update Password", use_container_width=True, key="admin_update_pw_btn"):
+        if not current_password or not new_password or not confirm_password:
+            st.error("Please fill in all three fields.")
+        elif new_password != confirm_password:
+            st.error("New password and confirmation don't match.")
+        elif len(new_password) < 6:
+            st.error("New password should be at least 6 characters.")
+        else:
+            df_admins = load_data("Admin Logins")
+            if df_admins.empty:
+                st.error("Unable to load admin login data.")
+            else:
+                df_admins.columns = df_admins.columns.astype(str).str.strip()
+                my_row = df_admins[df_admins["Username"].astype(str).str.strip() == st.session_state.username.strip()]
+                if my_row.empty:
+                    st.error("Could not find your admin login record.")
+                elif not verify_password(current_password, my_row.iloc[0].get("Password", "")):
+                    st.error("Current password is incorrect.")
+                else:
+                    row_idx = my_row.index[0] + 2
+                    pw_col_idx = df_admins.columns.get_loc("Password") + 1
+                    success = update_cell("Admin Logins", row_idx, pw_col_idx, hash_password(new_password))
+                    if success:
+                        st.success("Password updated. Use your new password next time you log in.")
+                    else:
+                        st.error("Failed to update password.")
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="dash-card"><div class="dash-card-header">Add Another Admin Account</div><div class="dash-card-body">', unsafe_allow_html=True)
+    
+    new_admin_username = st.text_input("New Admin Username", key="new_admin_user")
+    new_admin_password = st.text_input("New Admin Password", type="password", key="new_admin_pw")
+    
+    if st.button("Create Admin Account", use_container_width=True, key="create_admin_btn"):
+        if not new_admin_username.strip() or not new_admin_password:
+            st.error("Please fill in both fields.")
+        elif len(new_admin_password) < 6:
+            st.error("Password should be at least 6 characters.")
+        else:
+            df_admins = load_data("Admin Logins")
+            taken = False
+            if not df_admins.empty and "Username" in df_admins.columns:
+                df_admins.columns = df_admins.columns.astype(str).str.strip()
+                taken = not df_admins[df_admins["Username"].astype(str).str.strip().str.lower() == new_admin_username.strip().lower()].empty
+            
+            if taken:
+                st.error(f"Username '{new_admin_username.strip()}' is already taken.")
+            else:
+                success = write_data("Admin Logins", {
+                    "Username": new_admin_username.strip(),
+                    "Password": hash_password(new_admin_password),
+                })
+                if success:
+                    st.success(f"Admin account '{new_admin_username.strip()}' created.")
+                else:
+                    st.error("Failed to create admin account.")
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 # ============================================================
 # MAIN APP
